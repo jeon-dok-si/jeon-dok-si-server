@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  db:
+    image: mysql:8.0
+    container_name: capstone-db
+    restart: always
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root      # 비밀번호 (application.yml과 일치해야 함)
+      MYSQL_DATABASE: book_service   # 스키마를 자동으로 만들어줌
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+    volumes:
+      - ./db_data:/var/lib/mysql     # 데이터를 프로젝트 폴더 내 db_data에 저장

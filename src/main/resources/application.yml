@@ -1,0 +1,37 @@
+spring:
+  application:
+    name: book-service
+
+  # 1. 데이터베이스 연결 설정 (Docker MySQL)
+  datasource:
+    url: jdbc:mysql://localhost:3306/book_service?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8&allowPublicKeyRetrieval=true
+    # 학습용 로컬 DB라 root/root로 설정하였음. 운영 시에는 별도로 관리
+    username: root        # docker-compose.yml에서 설정한 유저
+    password: root        # docker-compose.yml에서 설정한 비번
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  # 2. JPA (ORM) 설정
+  jpa:
+    hibernate:
+      # 개발 초기에는 update (Entity 수정 시 테이블 자동 변경)
+      # 운영 배포 시에는 validate 또는 none 권장
+      ddl-auto: update
+    show-sql: true        # 실행되는 SQL 쿼리를 콘솔에 출력
+    properties:
+      hibernate:
+        format_sql: true  # SQL을 보기 좋게 줄바꿈
+
+    # 테이블이 다 만들어진 다음 data.sql을 실행하도록 지연시킴
+    defer-datasource-initialization: true
+
+  # 3. 데이터 시딩 설정 (data.sql 자동 실행)
+  sql:
+    init:
+      mode: always        # 서버 켤 때마다 항상 실행 (중복 데이터는 data.sql 내부에서 DELETE로 처리됨)
+      encoding: UTF-8
+
+# 4. 로깅 레벨 설정
+logging:
+  level:
+    org.hibernate.SQL: debug
+    org.hibernate.type.descriptor.sql: trace
