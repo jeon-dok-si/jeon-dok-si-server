@@ -46,6 +46,7 @@ dependencies {
     runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'
 
     implementation 'com.google.code.gson:gson:2.10.1' // JSON parsing
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.0' // Swagger UI - Spring Boot 4.0 compatible
 }
 
 tasks.named('test') {
