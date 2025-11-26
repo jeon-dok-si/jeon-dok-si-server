@@ -4,6 +4,7 @@ import com.jeondoksi.jeondoksi.domain.book.entity.Book;
 import com.jeondoksi.jeondoksi.domain.common.BaseTimeEntity;
 import com.jeondoksi.jeondoksi.domain.user.entity.User;
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -30,10 +31,43 @@ public class Report extends BaseTimeEntity {
     @Column(columnDefinition = "TEXT", nullable = false)
     private String content;
 
-    @Column(name = "result_type", nullable = false, length = 20)
-    private String resultType;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private ReportStatus status; // PENDING, APPROVED, REJECTED
 
-    @Lob
-    @Column(name = "analysis_result", columnDefinition = "TEXT", nullable = false)
-    private String analysisResult;
+    // --- 분석 결과 ---
+    @Column(name = "logic_score")
+    private int logicScore;
+
+    @Column(name = "emotion_score")
+    private int emotionScore;
+
+    @Column(name = "action_score")
+    private int actionScore;
+
+    @Column(name = "analysis_type")
+    private String analysisType; // ANALYST, PHILOSOPHER, etc.
+
+    @Builder
+    public Report(User user, Book book, String content) {
+        this.user = user;
+        this.book = book;
+        this.content = content;
+        this.status = ReportStatus.PENDING;
+    }
+
+    public void updateAnalysisResult(int logic, int emotion, int action, String type) {
+        this.logicScore = logic;
+        this.emotionScore = emotion;
+        this.actionScore = action;
+        this.analysisType = type;
+    }
+
+    public void approve() {
+        this.status = ReportStatus.APPROVED;
+    }
+
+    public void reject() {
+        this.status = ReportStatus.REJECTED;
+    }
 }
