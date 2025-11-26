@@ -1,0 +1,51 @@
+spring:
+  application:
+    name: book-service
+
+  # 1. 데이터베이스 연결 설정
+  datasource:
+    url: jdbc:mysql://localhost:3306/book_service?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8&allowPublicKeyRetrieval=true
+    username: YOUR_DB_USERNAME        # MySQL 사용자명
+    password: YOUR_DB_PASSWORD        # MySQL 비밀번호
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  # 2. JPA (ORM) 설정
+  jpa:
+    hibernate:
+      ddl-auto: create        # 개발: create, 운영: validate
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+    defer-datasource-initialization: true
+
+  # 3. 데이터 시딩 설정
+  sql:
+    init:
+      mode: always
+      encoding: UTF-8
+
+# 4. 로깅 레벨 설정
+logging:
+  level:
+    org.hibernate.SQL: debug
+    org.hibernate.type.descriptor.sql: trace
+
+# 5. JWT 설정
+jwt:
+  secret: YOUR_JWT_SECRET_KEY_HERE_MINIMUM_256_BITS        # 최소 256비트 이상의 시크릿 키
+  expiration: 86400000 # 24 hours
+
+# 6. 외부 API 키 설정
+api:
+  aladin:
+    key: YOUR_ALADIN_API_KEY        # 알라딘 API 키
+  naver:
+    client-id: YOUR_NAVER_CLIENT_ID        # 네이버 API 클라이언트 ID
+    client-secret: YOUR_NAVER_CLIENT_SECRET        # 네이버 API 시크릿
+
+# 7. OpenAI API 설정
+openai:
+  api-key: YOUR_OPENAI_API_KEY        # OpenAI API 키 (sk-proj-로 시작)
+  model: gpt-3.5-turbo

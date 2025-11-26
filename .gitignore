@@ -334,3 +334,6 @@ gradle-app.setting
 *.hprof
 /tools
 /db_data
+
+### Custom - Sensitive Information ###
+/src/main/resources/application.yml
