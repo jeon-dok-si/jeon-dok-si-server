@@ -3,6 +3,7 @@ package com.jeondoksi.jeondoksi.domain.quiz.entity;
 import com.jeondoksi.jeondoksi.domain.book.entity.Book;
 import com.jeondoksi.jeondoksi.domain.common.BaseTimeEntity;
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -26,4 +27,9 @@ public class Quiz extends BaseTimeEntity {
 
     @OneToMany(mappedBy = "quiz", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<QuizQuestion> questions = new ArrayList<>();
+
+    @Builder
+    public Quiz(Book book) {
+        this.book = book;
+    }
 }

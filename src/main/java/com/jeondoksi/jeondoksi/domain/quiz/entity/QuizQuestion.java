@@ -2,6 +2,7 @@ package com.jeondoksi.jeondoksi.domain.quiz.entity;
 
 import com.jeondoksi.jeondoksi.domain.common.BaseTimeEntity;
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -38,7 +39,13 @@ public class QuizQuestion extends BaseTimeEntity {
     @Column(nullable = false, length = 255)
     private String answer;
 
-    public enum QuizType {
-        MULTIPLE, OX, SHORT
+    @Builder
+    public QuizQuestion(Quiz quiz, int questionNo, QuizType type, String question, String optionsJson, String answer) {
+        this.quiz = quiz;
+        this.questionNo = questionNo;
+        this.type = type;
+        this.question = question;
+        this.optionsJson = optionsJson;
+        this.answer = answer;
     }
 }

@@ -3,6 +3,8 @@ package com.jeondoksi.jeondoksi.domain.quiz.entity;
 import com.jeondoksi.jeondoksi.domain.common.BaseTimeEntity;
 import com.jeondoksi.jeondoksi.domain.user.entity.User;
 import jakarta.persistence.*;
+import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.ColumnDefault;
@@ -32,4 +34,12 @@ public class QuizLog extends BaseTimeEntity {
 
     @Column(nullable = false)
     private int score;
+
+    @Builder
+    public QuizLog(User user, Quiz quiz, boolean isSolved, int score) {
+        this.user = user;
+        this.quiz = quiz;
+        this.isSolved = isSolved;
+        this.score = score;
+    }
 }
