@@ -2,9 +2,9 @@ package com.jeondoksi.jeondoksi.domain.book.entity;
 
 import com.jeondoksi.jeondoksi.domain.common.BaseTimeEntity;
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.ColumnDefault;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,20 +32,25 @@ public class Book extends BaseTimeEntity {
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    // --- 책 성향 지수 ---
-    @Column(name = "logic_score", nullable = false)
-    @ColumnDefault("0")
-    private int logicScore = 0;
-
-    @Column(name = "emotion_score", nullable = false)
-    @ColumnDefault("0")
-    private int emotionScore = 0;
-
-    @Column(name = "action_score", nullable = false)
-    @ColumnDefault("0")
-    private int actionScore = 0;
+    @Lob
+    @Column(columnDefinition = "TEXT")
+    private String keywords; // TF-IDF 분석을 위한 키워드 (쉼표로 구분)
 
     // --- 연관 관계 ---
     @OneToMany(mappedBy = "book", cascade = CascadeType.ALL)
     private List<BookAiSample> samples = new ArrayList<>();
+
+    @Builder
+    public Book(String isbn, String title, String author, String thumbnail, String description, String keywords) {
+        this.isbn = isbn;
+        this.title = title;
+        this.author = author;
+        this.thumbnail = thumbnail;
+        this.description = description;
+        this.keywords = keywords;
+    }
+
+    public void updateKeywords(String keywords) {
+        this.keywords = keywords;
+    }
 }
