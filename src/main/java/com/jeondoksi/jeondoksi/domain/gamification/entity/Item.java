@@ -2,6 +2,8 @@ package com.jeondoksi.jeondoksi.domain.gamification.entity;
 
 import com.jeondoksi.jeondoksi.domain.common.BaseTimeEntity;
 import jakarta.persistence.*;
+import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -30,11 +32,11 @@ public class Item extends BaseTimeEntity {
     @Column(name = "image_url", nullable = false, length = 500)
     private String imageUrl;
 
-    public enum ItemCategory {
-        HEAD, BODY, FACE
-    }
-
-    public enum ItemRarity {
-        COMMON, RARE, EPIC
+    @Builder
+    public Item(String name, ItemCategory category, ItemRarity rarity, String imageUrl) {
+        this.name = name;
+        this.category = category;
+        this.rarity = rarity;
+        this.imageUrl = imageUrl;
     }
 }

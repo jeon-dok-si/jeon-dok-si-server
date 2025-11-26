@@ -3,6 +3,8 @@ package com.jeondoksi.jeondoksi.domain.gamification.entity;
 import com.jeondoksi.jeondoksi.domain.common.BaseTimeEntity;
 import com.jeondoksi.jeondoksi.domain.user.entity.User;
 import jakarta.persistence.*;
+import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.ColumnDefault;
@@ -29,6 +31,12 @@ public class Inventory extends BaseTimeEntity {
     @Column(name = "is_equipped", nullable = false)
     @ColumnDefault("false")
     private boolean isEquipped = false;
+
+    @Builder
+    public Inventory(User user, Item item) {
+        this.user = user;
+        this.item = item;
+    }
 
     public void equip() {
         this.isEquipped = true;
