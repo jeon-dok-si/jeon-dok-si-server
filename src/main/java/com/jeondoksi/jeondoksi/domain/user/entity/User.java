@@ -2,6 +2,7 @@ package com.jeondoksi.jeondoksi.domain.user.entity;
 
 import com.jeondoksi.jeondoksi.domain.common.BaseTimeEntity;
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.ColumnDefault;
@@ -48,16 +49,35 @@ public class User extends BaseTimeEntity {
     @ColumnDefault("0")
     private int actionStat = 0;
 
-    // 경험치 획득 및 레벨업 로직 (문서 기반)
-    public void gainExp(int amount) {
-        this.currentXp += amount;
-        int requiredXp = this.level * 100; // 레벨업 공식: Lv * 100
+    @Builder
+    public User(String email, String password, String nickname) {
+        this.email = email;
+        this.password = password;
+        this.nickname = nickname;
+        this.level = 1;
+        this.currentXp = 0;
+        this.logicStat = 0;
+        this.emotionStat = 0;
+        this.actionStat = 0;
+    }
 
+    // 경험치 획득 및 레벨업 로직 (문서 기반)
+    public void gainExp(int exp) {
+        this.currentXp += exp;
+        // 레벨업 로직 (예: 100 * level 필요)
+        int requiredXp = this.level * 100;
         while (this.currentXp >= requiredXp) {
             this.currentXp -= requiredXp;
             this.level++;
             requiredXp = this.level * 100;
         }
+    }
+
+    public void useExp(int exp) {
+        if (this.currentXp < exp) {
+            throw new IllegalArgumentException("Not enough XP");
+        }
+        this.currentXp -= exp;
     }
 
     // 성향 점수 업데이트
