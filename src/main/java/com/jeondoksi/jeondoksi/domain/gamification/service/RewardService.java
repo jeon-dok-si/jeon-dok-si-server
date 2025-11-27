@@ -27,18 +27,18 @@ public class RewardService {
     private final InventoryRepository inventoryRepository;
     private final UserRepository userRepository;
 
-    private static final int GACHA_COST = 100; // 뽑기 비용 (XP)
+    private static final int GACHA_COST = 100; // 뽑기 비용 (Point)
 
     @Transactional
     public GachaResponse drawItem(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
-        if (user.getCurrentXp() < GACHA_COST) {
-            throw new BusinessException(ErrorCode.NOT_ENOUGH_XP);
+        if (user.getPoint() < GACHA_COST) {
+            throw new BusinessException(ErrorCode.NOT_ENOUGH_POINT);
         }
 
-        user.useExp(GACHA_COST);
+        user.usePoint(GACHA_COST);
 
         ItemRarity rarity = determineRarity();
         Item item = itemRepository.findRandomByRarity(rarity.name());

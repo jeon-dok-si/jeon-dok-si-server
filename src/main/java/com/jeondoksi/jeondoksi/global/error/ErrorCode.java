@@ -34,6 +34,7 @@ public enum ErrorCode {
 
     // Gamification
     NOT_ENOUGH_XP(HttpStatus.BAD_REQUEST, "G001", "경험치가 부족합니다."),
+    NOT_ENOUGH_POINT(HttpStatus.BAD_REQUEST, "G003", "포인트가 부족합니다."),
     ITEM_NOT_FOUND(HttpStatus.NOT_FOUND, "G002", "아이템을 찾을 수 없습니다.");
 
     private final HttpStatus status;
