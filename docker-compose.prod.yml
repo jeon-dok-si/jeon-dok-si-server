@@ -1,0 +1,27 @@
+# Production Docker Compose for AWS Deployment
+# Uses external RDS MySQL (not included here)
+# All configuration comes from application.yml inside the JAR
+
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: jeondoksi-app
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    
+    # No environment variables needed - uses application.yml
+    
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+# Note: MySQL database is external (AWS RDS)
+# Configure RDS connection in src/main/resources/application.yml before building
