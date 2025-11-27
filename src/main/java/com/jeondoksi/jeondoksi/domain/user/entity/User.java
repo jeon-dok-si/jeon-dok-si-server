@@ -38,6 +38,10 @@ public class User extends BaseTimeEntity {
     @ColumnDefault("0")
     private int currentXp = 0;
 
+    @Column(nullable = false)
+    @ColumnDefault("0")
+    private int point = 0;
+
     // --- 성향 점수 (Vector) ---
     @Column(name = "logic_stat", nullable = false)
     @ColumnDefault("0")
@@ -58,6 +62,7 @@ public class User extends BaseTimeEntity {
         this.nickname = nickname;
         this.level = 1;
         this.currentXp = 0;
+        this.point = 0;
         this.logicStat = 0;
         this.emotionStat = 0;
         this.actionStat = 0;
@@ -66,6 +71,8 @@ public class User extends BaseTimeEntity {
     // 경험치 획득 및 레벨업 로직 (문서 기반)
     public void gainExp(int exp) {
         this.currentXp += exp;
+        this.point += exp; // 포인트도 함께 증가
+
         // 레벨업 로직 (예: 100 * level 필요)
         int requiredXp = this.level * 100;
         while (this.currentXp >= requiredXp) {
@@ -75,11 +82,11 @@ public class User extends BaseTimeEntity {
         }
     }
 
-    public void useExp(int exp) {
-        if (this.currentXp < exp) {
-            throw new IllegalArgumentException("Not enough XP");
+    public void usePoint(int amount) {
+        if (this.point < amount) {
+            throw new IllegalArgumentException("Not enough Points");
         }
-        this.currentXp -= exp;
+        this.point -= amount;
     }
 
     // 성향 점수 업데이트
