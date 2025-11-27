@@ -14,6 +14,7 @@ public class UserResponse {
     private String nickname;
     private Integer level;
     private Integer currentXp;
+    private Integer point; // 포인트 추가
     private Integer requiredXp;
     private Double progressPercentage; // 레벨업 진행률 (%)
     private Stats stats;
@@ -47,6 +48,7 @@ public class UserResponse {
                 .nickname(user.getNickname())
                 .level(user.getLevel())
                 .currentXp(user.getCurrentXp())
+                .point(user.getPoint()) // 포인트 매핑
                 .requiredXp(requiredXp)
                 .progressPercentage(Math.round(progress * 10) / 10.0) // 소수점 1자리
                 .stats(Stats.builder()
