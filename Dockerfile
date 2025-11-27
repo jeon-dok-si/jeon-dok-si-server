@@ -1,7 +1,7 @@
 # Multi-stage build for production
 # Uses application.yml for configuration (no .env needed)
 
-FROM gradle:8.5-jdk21 AS build
+FROM gradle:8.14-jdk21 AS build
 
 WORKDIR /app
 
