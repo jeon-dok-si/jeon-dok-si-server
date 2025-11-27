@@ -79,6 +79,8 @@ public class QuizService {
 
     @Transactional
     public QuizResultResponse submitQuiz(Long userId, QuizSubmitRequest request) {
+        log.info("Quiz submission request - userId: {}, quizId: {}", userId, request.getQuizId());
+
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
@@ -87,26 +89,35 @@ public class QuizService {
 
         // 이미 푼 기록이 있는지 확인 (중복 보상 방지)
         boolean alreadySolved = quizLogRepository.existsByUserAndQuizAndIsSolvedTrue(user, quiz);
+        log.info("Already solved: {}", alreadySolved);
 
         int score = calculateScore(quiz, request.getAnswers());
         boolean isSolved = score >= 60;
         int gainedExp = 0;
 
+        log.info("Quiz result - score: {}, isSolved: {}", score, isSolved);
+
         if (isSolved && !alreadySolved) {
             gainedExp = 100; // 통과 시 100 XP
-            user.gainExp(gainedExp);
+            boolean leveledUp = user.gainExp(gainedExp);
+            log.info("User gained {} exp. Current XP: {}, Point: {}", gainedExp, user.getCurrentXp(), user.getPoint());
+
+            if (leveledUp) {
+                log.info("User leveled up! New Level: {}", user.getLevel());
+                // TODO: 레벨업 알림 또는 추가 보상 로직
+            }
         }
 
-        QuizLog log = QuizLog.builder()
+        QuizLog logEntity = QuizLog.builder()
                 .user(user)
                 .quiz(quiz)
                 .isSolved(isSolved)
                 .score(score)
                 .build();
-        quizLogRepository.save(log);
+        quizLogRepository.save(logEntity);
 
         return QuizResultResponse.builder()
-                .logId(log.getLogId())
+                .logId(logEntity.getLogId())
                 .isSolved(isSolved)
                 .score(score)
                 .gainedExp(gainedExp)

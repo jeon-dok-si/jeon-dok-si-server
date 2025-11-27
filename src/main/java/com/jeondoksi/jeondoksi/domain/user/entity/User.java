@@ -55,6 +55,9 @@ public class User extends BaseTimeEntity {
     @ColumnDefault("0")
     private int actionStat = 0;
 
+    @Version
+    private Long version;
+
     @Builder
     public User(String email, String password, String nickname) {
         this.email = email;
@@ -68,18 +71,31 @@ public class User extends BaseTimeEntity {
         this.actionStat = 0;
     }
 
-    // 경험치 획득 및 레벨업 로직 (문서 기반)
-    public void gainExp(int exp) {
+    /**
+     * 경험치 획득 및 레벨업 로직
+     * 
+     * @param exp 획득할 경험치
+     * @return 레벨업 여부 (true: 레벨업 함, false: 안 함)
+     */
+    public boolean gainExp(int exp) {
         this.currentXp += exp;
         this.point += exp; // 포인트도 함께 증가
 
-        // 레벨업 로직 (예: 100 * level 필요)
-        int requiredXp = this.level * 100;
+        boolean leveledUp = false;
+        int requiredXp = getRequiredXpForNextLevel();
+
         while (this.currentXp >= requiredXp) {
             this.currentXp -= requiredXp;
             this.level++;
-            requiredXp = this.level * 100;
+            leveledUp = true;
+            requiredXp = getRequiredXpForNextLevel();
         }
+
+        return leveledUp;
+    }
+
+    private int getRequiredXpForNextLevel() {
+        return this.level * 100;
     }
 
     public void usePoint(int amount) {
