@@ -338,4 +338,21 @@ gradle-app.setting
 ### Custom - Sensitive Information ###
 /src/main/resources/application.yml
 src/main/resources/application.yml
-docs
+
+# Docker & Deployment
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+
+# AWS
+bucket-policy.json
+cors.json
+
+# Backup files
+*.sql.backup
+backup*.sql
+
+# Documentation (optional)
+docs/
