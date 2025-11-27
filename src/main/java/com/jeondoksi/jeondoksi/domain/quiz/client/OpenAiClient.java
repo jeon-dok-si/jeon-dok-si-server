@@ -68,25 +68,43 @@ public class OpenAiClient {
                         "    \"questionNo\": 1,\n" +
                         "    \"type\": \"MULTIPLE\",\n" +
                         "    \"question\": \"질문 내용\",\n" +
-                        "    \"options\": [\"보기1\", \"보기2\", \"보기3\", \"보기4\"],\n" +
+                        "    \"options\": [\"보기1\", \"보기2\", \"보기3\", \"보기4\", \"보기5\"],\n" +
                         "    \"answer\": \"정답 보기\"\n" +
                         "  },\n" +
                         "  {\n" +
                         "    \"questionNo\": 2,\n" +
+                        "    \"type\": \"MULTIPLE\",\n" +
+                        "    \"question\": \"질문 내용\",\n" +
+                        "    \"options\": [\"보기1\", \"보기2\", \"보기3\", \"보기4\", \"보기5\"],\n" +
+                        "    \"answer\": \"정답 보기\"\n" +
+                        "  },\n" +
+                        "  {\n" +
+                        "    \"questionNo\": 3,\n" +
                         "    \"type\": \"OX\",\n" +
                         "    \"question\": \"질문 내용\",\n" +
                         "    \"options\": [\"O\", \"X\"],\n" +
                         "    \"answer\": \"O\"\n" +
                         "  },\n" +
                         "  {\n" +
-                        "    \"questionNo\": 3,\n" +
+                        "    \"questionNo\": 4,\n" +
+                        "    \"type\": \"OX\",\n" +
+                        "    \"question\": \"질문 내용\",\n" +
+                        "    \"options\": [\"O\", \"X\"],\n" +
+                        "    \"answer\": \"X\"\n" +
+                        "  },\n" +
+                        "  {\n" +
+                        "    \"questionNo\": 5,\n" +
                         "    \"type\": \"SHORT\",\n" +
                         "    \"question\": \"질문 내용\",\n" +
                         "    \"options\": [],\n" +
                         "    \"answer\": \"단답형 정답\"\n" +
                         "  }\n" +
                         "]\n" +
-                        "총 5문제이고, 객관식(MULTIPLE), OX퀴즈(OX), 단답형(SHORT)을 적절히 섞어서 내줘. 한국어로 작성해줘.",
+                        "총 5문제이고, 다음 규칙을 반드시 지켜줘:\n" +
+                        "1. 1번, 2번 문제는 객관식(MULTIPLE)이며, 보기는 반드시 5개여야 해.\n" +
+                        "2. 3번, 4번 문제는 OX퀴즈(OX)여야 해.\n" +
+                        "3. 5번 문제는 단답형(SHORT)이어야 해.\n" +
+                        "한국어로 작성해줘.",
                 title, description);
     }
 
