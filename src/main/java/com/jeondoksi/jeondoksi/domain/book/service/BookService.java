@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import org.springframework.cache.annotation.Cacheable;
 
 @Service
 @RequiredArgsConstructor
@@ -20,6 +21,7 @@ public class BookService {
     private final kr.co.shineware.nlp.komoran.core.Komoran komoran;
 
     @Transactional
+    @Cacheable(value = "book_search", key = "#query", unless = "#result.isEmpty()")
     public List<BookSearchResponse> searchBooks(String query) {
         List<BookSearchResponse> books = naverBookClient.searchBooks(query);
 
