@@ -6,9 +6,11 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.DynamicUpdate;
 
 @Entity
 @Getter
+@DynamicUpdate
 @NoArgsConstructor
 @Table(name = "users") // MySQL 예약어 충돌 방지
 public class User extends BaseTimeEntity {

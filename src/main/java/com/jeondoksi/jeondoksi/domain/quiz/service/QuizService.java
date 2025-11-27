@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
+@Transactional
 public class QuizService {
 
     private final QuizRepository quizRepository;
