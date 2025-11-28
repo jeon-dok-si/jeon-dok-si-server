@@ -1,10 +1,13 @@
 package com.jeondoksi.jeondoksi.domain.report.repository;
 
+import com.jeondoksi.jeondoksi.domain.book.entity.Book;
 import com.jeondoksi.jeondoksi.domain.report.entity.Report;
+import com.jeondoksi.jeondoksi.domain.user.entity.User;
 import com.jeondoksi.jeondoksi.domain.user.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface ReportRepository extends JpaRepository<Report, Long> {
     List<Report> findAllByUser(User user);
@@ -16,4 +19,6 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
      * @return 최근 독후감 3건 (최신순)
      */
     List<Report> findTop3ByUserOrderByCreatedAtDesc(User user);
+
+    Optional<Report> findByBookAndUser(Book book, User user);
 }

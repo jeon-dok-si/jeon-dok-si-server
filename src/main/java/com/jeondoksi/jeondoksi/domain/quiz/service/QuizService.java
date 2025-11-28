@@ -3,6 +3,8 @@ package com.jeondoksi.jeondoksi.domain.quiz.service;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.jeondoksi.jeondoksi.domain.book.client.NaverBookClient;
+import com.jeondoksi.jeondoksi.domain.book.dto.BookSearchResponse;
 import com.jeondoksi.jeondoksi.domain.book.entity.Book;
 import com.jeondoksi.jeondoksi.domain.book.repository.BookRepository;
 import com.jeondoksi.jeondoksi.domain.quiz.client.OpenAiClient;
@@ -15,6 +17,8 @@ import com.jeondoksi.jeondoksi.domain.quiz.entity.QuizQuestion;
 import com.jeondoksi.jeondoksi.domain.quiz.entity.QuizType;
 import com.jeondoksi.jeondoksi.domain.quiz.repository.QuizLogRepository;
 import com.jeondoksi.jeondoksi.domain.quiz.repository.QuizRepository;
+import com.jeondoksi.jeondoksi.domain.report.entity.Report;
+import com.jeondoksi.jeondoksi.domain.report.repository.ReportRepository;
 import com.jeondoksi.jeondoksi.domain.user.entity.User;
 import com.jeondoksi.jeondoksi.domain.user.repository.UserRepository;
 import com.jeondoksi.jeondoksi.global.error.BusinessException;
@@ -26,6 +30,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -38,28 +43,58 @@ public class QuizService {
     private final QuizLogRepository quizLogRepository;
     private final BookRepository bookRepository;
     private final UserRepository userRepository;
+    private final ReportRepository reportRepository;
     private final OpenAiClient openAiClient;
+    private final NaverBookClient naverBookClient;
     private final Gson gson;
 
     private static final double SIMILARITY_THRESHOLD = 0.8;
 
     @Transactional
-    public QuizResponse getQuiz(String isbn) {
+    public QuizResponse getQuiz(String isbn, Long userId) {
         Book book = bookRepository.findById(isbn)
                 .orElseThrow(() -> new BusinessException(ErrorCode.BOOK_NOT_FOUND));
 
-        Quiz quiz = quizRepository.findByBook(book)
-                .orElseGet(() -> createQuiz(book));
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+
+        Quiz quiz = quizRepository.findByBookAndUser(book, user)
+                .orElseGet(() -> createQuiz(book, user));
 
         return QuizResponse.from(quiz);
     }
 
     @Transactional
-    public Quiz createQuiz(Book book) {
-        String jsonResponse = openAiClient.generateQuiz(book.getTitle(), book.getDescription());
+    public Quiz createQuiz(Book book, User user) {
+        // 1. 네이버 API로 책 상세 정보 가져오기
+        String naverDescription = "";
+        try {
+            List<BookSearchResponse> searchResults = naverBookClient.searchBooks(book.getTitle());
+            if (!searchResults.isEmpty()) {
+                naverDescription = searchResults.get(0).getDescription();
+            }
+        } catch (Exception e) {
+            log.warn("Failed to fetch Naver book description", e);
+        }
+
+        // 2. 사용자의 감상문(Report) 가져오기
+        String userReview = "";
+        Optional<Report> report = reportRepository.findByBookAndUser(book, user);
+        if (report.isPresent()) {
+            userReview = report.get().getContent();
+        }
+
+        // 3. 프롬프트 생성
+        String prompt = createQuizPrompt(book, naverDescription, userReview);
+
+        // 4. GPT 호출
+        String jsonResponse = openAiClient.generateQuiz(prompt);
         JsonArray jsonArray = gson.fromJson(jsonResponse, JsonArray.class);
 
-        Quiz quiz = Quiz.builder().book(book).build();
+        Quiz quiz = Quiz.builder()
+                .book(book)
+                .user(user)
+                .build();
 
         for (int i = 0; i < jsonArray.size(); i++) {
             JsonObject obj = jsonArray.get(i).getAsJsonObject();
@@ -75,6 +110,59 @@ public class QuizService {
         }
 
         return quizRepository.save(quiz);
+    }
+
+    private String createQuizPrompt(Book book, String naverDescription, String userReview) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("책 제목: ").append(book.getTitle()).append("\n");
+        sb.append("기본 줄거리: ").append(book.getDescription()).append("\n");
+
+        if (!naverDescription.isEmpty()) {
+            sb.append("상세 소개: ").append(naverDescription).append("\n");
+        }
+
+        if (!userReview.isEmpty()) {
+            sb.append("사용자 감상문: ").append(userReview).append("\n");
+        }
+
+        sb.append("\n위 내용을 바탕으로 퀴즈 5문제를 만들어줘.\n");
+        sb.append("중요한 요구사항:\n");
+        sb.append("1. 난이도는 '중'로 설정해줘. 책을 읽은 사람이라면 누구나 맞출 수 있는 쉬운 내용이어야 해.\n");
+        sb.append("2. 작가의 사생활이나 차기작 같은 책 외적인 내용은 절대 질문하지 마.\n");
+        sb.append("3. 사용자가 작성한 감상문 내용이 있다면, 그 내용을 참고해서 사용자가 인상 깊게 읽은 부분에 대한 문제를 기반으로 1~2문제 포함해줘.\n");
+        sb.append("4. 너무 지엽적인 내용(몇 페이지에 나오는지 등)은 피하고, 전체적인 흐름이나 주요 사건 위주로 출제해줘.\n");
+
+        sb.append("\nJSON 형식으로 반환해줘. 형식은 다음과 같아:\n" +
+                "[\n" +
+                "  {\n" +
+                "    \"questionNo\": 1,\n" +
+                "    \"type\": \"MULTIPLE\",\n" +
+                "    \"question\": \"질문 내용\",\n" +
+                "    \"options\": [\"보기1\", \"보기2\", \"보기3\", \"보기4\", \"보기5\"],\n" +
+                "    \"answer\": \"정답 보기\"\n" +
+                "  },\n" +
+                "  {\n" +
+                "    \"questionNo\": 3,\n" +
+                "    \"type\": \"OX\",\n" +
+                "    \"question\": \"질문 내용\",\n" +
+                "    \"options\": [\"O\", \"X\"],\n" +
+                "    \"answer\": \"O\"\n" +
+                "  },\n" +
+                "  {\n" +
+                "    \"questionNo\": 5,\n" +
+                "    \"type\": \"SHORT\",\n" +
+                "    \"question\": \"질문 내용\",\n" +
+                "    \"options\": [],\n" +
+                "    \"answer\": \"단답형 정답\"\n" +
+                "  }\n" +
+                "]\n" +
+                "총 5문제이고, 다음 규칙을 반드시 지켜줘:\n" +
+                "1. 1번, 2번 문제는 객관식(MULTIPLE)이며, 보기는 반드시 5개여야 해.\n" +
+                "2. 3번, 4번 문제는 OX퀴즈(OX)여야 해.\n" +
+                "3. 5번 문제는 단답형(SHORT)이어야 해.\n" +
+                "한국어로 작성해줘.");
+
+        return sb.toString();
     }
 
     @Transactional
