@@ -2,6 +2,7 @@ package com.jeondoksi.jeondoksi.domain.quiz.entity;
 
 import com.jeondoksi.jeondoksi.domain.book.entity.Book;
 import com.jeondoksi.jeondoksi.domain.common.BaseTimeEntity;
+import com.jeondoksi.jeondoksi.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
@@ -25,11 +26,16 @@ public class Quiz extends BaseTimeEntity {
     @JoinColumn(name = "book_isbn", nullable = false)
     private Book book;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user;
+
     @OneToMany(mappedBy = "quiz", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<QuizQuestion> questions = new ArrayList<>();
 
     @Builder
-    public Quiz(Book book) {
+    public Quiz(Book book, User user) {
         this.book = book;
+        this.user = user;
     }
 }

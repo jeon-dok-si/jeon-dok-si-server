@@ -22,8 +22,11 @@ public class QuizController {
 
     @Operation(summary = "퀴즈 생성/조회", description = "책 ISBN으로 퀴즈를 조회하거나 없으면 생성합니다.")
     @GetMapping("/{isbn}")
-    public ApiResponse<QuizResponse> getQuiz(@PathVariable String isbn) {
-        return ApiResponse.success(quizService.getQuiz(isbn));
+    public ApiResponse<QuizResponse> getQuiz(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @PathVariable String isbn) {
+        Long userId = Long.parseLong(userDetails.getUsername());
+        return ApiResponse.success(quizService.getQuiz(isbn, userId));
     }
 
     @Operation(summary = "퀴즈 제출 및 채점")
