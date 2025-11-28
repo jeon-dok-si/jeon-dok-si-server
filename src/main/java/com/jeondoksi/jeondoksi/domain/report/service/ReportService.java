@@ -41,7 +41,8 @@ public class ReportService {
         private final com.jeondoksi.jeondoksi.domain.quiz.client.OpenAiClient openAiClient;
 
         @Transactional
-        public Long submitReport(Long userId, ReportRequest request) {
+        public com.jeondoksi.jeondoksi.domain.report.dto.ReportDetailResponse submitReport(Long userId,
+                        ReportRequest request) {
                 User user = userRepository.findById(userId)
                                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
@@ -88,7 +89,8 @@ public class ReportService {
                 user.updateStats(analysis.getLogicScore(), analysis.getEmotionScore(), analysis.getActionScore());
                 user.gainExp(50);
 
-                return reportRepository.save(report).getReportId();
+                reportRepository.save(report);
+                return com.jeondoksi.jeondoksi.domain.report.dto.ReportDetailResponse.from(report);
         }
 
         /**

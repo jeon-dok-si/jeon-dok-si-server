@@ -26,10 +26,13 @@ public class ReportResponse {
         private String type;
     }
 
+    private String bookThumbnail;
+
     public static ReportResponse from(Report report) {
         return ReportResponse.builder()
                 .reportId(report.getReportId())
                 .bookTitle(report.getBook().getTitle())
+                .bookThumbnail(report.getBook().getThumbnail())
                 .content(report.getContent())
                 .status(report.getStatus())
                 .analysis(AnalysisResult.builder()

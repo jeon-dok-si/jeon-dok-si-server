@@ -24,7 +24,7 @@ public class ReportController {
 
     @Operation(summary = "독후감 제출")
     @PostMapping
-    public ApiResponse<Long> submitReport(
+    public ApiResponse<com.jeondoksi.jeondoksi.domain.report.dto.ReportDetailResponse> submitReport(
             @AuthenticationPrincipal UserDetails userDetails,
             @Valid @RequestBody ReportRequest request) {
         Long userId = Long.parseLong(userDetails.getUsername());
