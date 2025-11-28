@@ -104,10 +104,19 @@ public class OpenAiClient {
 
     private String parseResponse(String jsonResponse) {
         JsonObject jsonObject = gson.fromJson(jsonResponse, JsonObject.class);
-        return jsonObject.getAsJsonArray("choices")
+        String content = jsonObject.getAsJsonArray("choices")
                 .get(0).getAsJsonObject()
                 .getAsJsonObject("message")
                 .get("content").getAsString();
+
+        // Markdown 코드 블록 제거 (gpt-4o 호환성)
+        if (content.contains("```json")) {
+            content = content.replace("```json", "").replace("```", "");
+        } else if (content.contains("```")) {
+            content = content.replace("```", "");
+        }
+
+        return content.trim();
     }
 
     public double detectAiGenerated(String content) {

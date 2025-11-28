@@ -48,4 +48,4 @@ api:
 # 7. OpenAI API 설정
 openai:
   api-key: YOUR_OPENAI_API_KEY        # OpenAI API 키 (sk-proj-로 시작)
-  model: gpt-3.5-turbo
+  model: gpt-4o
