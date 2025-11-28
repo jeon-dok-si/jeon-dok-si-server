@@ -37,4 +37,11 @@ public class ReportController {
         Long userId = Long.parseLong(userDetails.getUsername());
         return ApiResponse.success(reportService.getMyReports(userId));
     }
+
+    @Operation(summary = "독후감 상세 조회")
+    @GetMapping("/{reportId}")
+    public ApiResponse<com.jeondoksi.jeondoksi.domain.report.dto.ReportDetailResponse> getReportDetail(
+            @PathVariable Long reportId) {
+        return ApiResponse.success(reportService.getReportDetail(reportId));
+    }
 }
