@@ -159,4 +159,40 @@ public class OpenAiClient {
             return 0.0;
         }
     }
+
+    public String generateFeedback(String content, String bookTitle) {
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.setBearerAuth(apiKey);
+
+            JsonObject systemMessage = new JsonObject();
+            systemMessage.addProperty("role", "system");
+            systemMessage.addProperty("content",
+                    "당신은 독서 교육 전문가입니다. 사용자의 독후감을 읽고 따뜻하고 건설적인 피드백을 제공해주세요. " +
+                            "책의 내용과 연결지어 구체적으로 칭찬하고, 더 깊이 생각해볼 만한 점을 제안해주세요. " +
+                            "존댓말로 작성하고, 100자 이내로 요약해주세요.");
+
+            JsonObject userMessage = new JsonObject();
+            userMessage.addProperty("role", "user");
+            userMessage.addProperty("content", "책 제목: " + bookTitle + "\n\n독후감 내용:\n" + content);
+
+            JsonArray messages = new JsonArray();
+            messages.add(systemMessage);
+            messages.add(userMessage);
+
+            JsonObject requestBody = new JsonObject();
+            requestBody.addProperty("model", model);
+            requestBody.add("messages", messages);
+            requestBody.addProperty("temperature", 0.7);
+
+            HttpEntity<String> request = new HttpEntity<>(gson.toJson(requestBody), headers);
+            String response = restTemplate.postForObject(OPENAI_URL, request, String.class);
+
+            return parseResponse(response);
+        } catch (Exception e) {
+            log.error("Feedback generation failed", e);
+            return "피드백을 생성하는 도중 문제가 발생했습니다. 잠시 후 다시 시도해주세요.";
+        }
+    }
 }

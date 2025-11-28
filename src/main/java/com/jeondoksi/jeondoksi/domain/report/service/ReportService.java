@@ -69,6 +69,7 @@ public class ReportService {
                 // 검증 통과 - NLP 분석 및 저장
                 // ============================================
                 NlpAnalyzer.AnalysisResult analysis = nlpAnalyzer.analyze(content);
+                String feedback = openAiClient.generateFeedback(content, book.getTitle());
 
                 Report report = Report.builder()
                                 .user(user)
@@ -80,7 +81,8 @@ public class ReportService {
                                 analysis.getLogicScore(),
                                 analysis.getEmotionScore(),
                                 analysis.getActionScore(),
-                                analysis.getType());
+                                analysis.getType(),
+                                feedback);
 
                 // 사용자 스탯 업데이트 및 경험치 지급
                 user.updateStats(analysis.getLogicScore(), analysis.getEmotionScore(), analysis.getActionScore());
@@ -188,5 +190,11 @@ public class ReportService {
                 return reportRepository.findAllByUser(user).stream()
                                 .map(ReportResponse::from)
                                 .collect(Collectors.toList());
+        }
+
+        public com.jeondoksi.jeondoksi.domain.report.dto.ReportDetailResponse getReportDetail(Long reportId) {
+                Report report = reportRepository.findById(reportId)
+                                .orElseThrow(() -> new BusinessException(ErrorCode.REPORT_NOT_FOUND));
+                return com.jeondoksi.jeondoksi.domain.report.dto.ReportDetailResponse.from(report);
         }
 }

@@ -48,6 +48,10 @@ public class Report extends BaseTimeEntity {
     @Column(name = "analysis_type")
     private String analysisType; // ANALYST, PHILOSOPHER, etc.
 
+    @Lob
+    @Column(columnDefinition = "TEXT")
+    private String feedback;
+
     @Builder
     public Report(User user, Book book, String content) {
         this.user = user;
@@ -56,11 +60,12 @@ public class Report extends BaseTimeEntity {
         this.status = ReportStatus.PENDING;
     }
 
-    public void updateAnalysisResult(int logic, int emotion, int action, String type) {
+    public void updateAnalysisResult(int logic, int emotion, int action, String type, String feedback) {
         this.logicScore = logic;
         this.emotionScore = emotion;
         this.actionScore = action;
         this.analysisType = type;
+        this.feedback = feedback;
     }
 
     public void approve() {
