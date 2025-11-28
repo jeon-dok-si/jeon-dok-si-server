@@ -3,7 +3,6 @@ package com.jeondoksi.jeondoksi.domain.report.repository;
 import com.jeondoksi.jeondoksi.domain.book.entity.Book;
 import com.jeondoksi.jeondoksi.domain.report.entity.Report;
 import com.jeondoksi.jeondoksi.domain.user.entity.User;
-import com.jeondoksi.jeondoksi.domain.user.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
