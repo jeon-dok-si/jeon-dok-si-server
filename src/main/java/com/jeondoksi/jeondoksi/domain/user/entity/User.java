@@ -105,10 +105,19 @@ public class User extends BaseTimeEntity {
         this.point -= amount;
     }
 
-    // 성향 점수 업데이트
+    // 성향 점수 업데이트 (EMA: 지수 이동 평균 적용)
+    // alpha = 0.3 (새로운 값의 가중치)
     public void updateStats(int logic, int emotion, int action) {
-        this.logicStat += logic;
-        this.emotionStat += emotion;
-        this.actionStat += action;
+        if (this.logicStat == 0 && this.emotionStat == 0 && this.actionStat == 0) {
+            // 초기 상태면 바로 대입
+            this.logicStat = logic;
+            this.emotionStat = emotion;
+            this.actionStat = action;
+        } else {
+            // 기존 값과 새로운 값의 가중 평균 (0~100 유지)
+            this.logicStat = (int) (this.logicStat * 0.7 + logic * 0.3);
+            this.emotionStat = (int) (this.emotionStat * 0.7 + emotion * 0.3);
+            this.actionStat = (int) (this.actionStat * 0.7 + action * 0.3);
+        }
     }
 }
