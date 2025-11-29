@@ -31,33 +31,57 @@ public class NlpAnalyzer {
         KomoranResult analyzeResult = komoran.analyze(text);
         List<Token> tokens = analyzeResult.getTokenList();
 
-        // 1. Logic Score
+        // 1. Logic Score (Improved)
         int logicScore = textComplexityMetric.calculateLogicScore(text, analyzeResult);
 
-        // 2. Emotion Score
-        int emotionCount = 0;
+        // 2. Emotion Score (Maximized)
+        double totalEmotionScore = 0;
         int totalWords = tokens.size();
-        for (Token token : tokens) {
+
+        for (int i = 0; i < tokens.size(); i++) {
+            Token token = tokens.get(i);
             String morph = token.getMorph();
-            // 단순 포함 여부로 확인 (어근 매칭을 위해)
-            if (sentimentDictionary.isPositive(morph) || sentimentDictionary.isNegative(morph)) {
-                emotionCount++;
+
+            int wordScore = sentimentDictionary.getScore(morph);
+            if (wordScore > 0) {
+                // Check for intensifier in previous token
+                double multiplier = 1.0;
+                if (i > 0) {
+                    String prevMorph = tokens.get(i - 1).getMorph();
+                    multiplier = sentimentDictionary.getIntensifierMultiplier(prevMorph);
+                }
+                totalEmotionScore += (wordScore * multiplier);
             }
         }
-        int emotionScore = (int) (((double) emotionCount / totalWords) * 500); // 가중치 증폭
+
+        // 증폭 계수 적용 (조금만 감성적이어도 점수 뻥튀기)
+        // 전체 단어 중 감성 단어 비중이 5%만 되어도 만점에 가깝게
+        double emotionRatio = totalEmotionScore / totalWords;
+        int emotionScore = (int) (emotionRatio * 2000); // 가중치 대폭 상향 (기존 500 -> 2000)
         emotionScore = Math.min(emotionScore, 100);
 
-        // 3. Action Score (청유형 어미, 동사 비율)
+        // 3. Action Score (Refined)
         int actionCount = 0;
         for (Token token : tokens) {
             String pos = token.getPos();
             String morph = token.getMorph();
-            // 동사(VV)이거나 청유형 어미(EC - 자, 하자 등 단순 매칭 어렵지만 예시로)
-            if (pos.startsWith("VV") || morph.endsWith("자") || morph.endsWith("다")) {
+
+            // 청유형 어미 (-자, -ㅂ시다), 의지 (-겠다, -ㄹ게)
+            if (pos.equals("EC") || pos.equals("EF")) {
+                if (morph.endsWith("자") || morph.endsWith("시다") || morph.endsWith("게") || morph.endsWith("다")) {
+                    actionCount++;
+                }
+            }
+            // 선어말어미 (의지)
+            if (pos.equals("EP") && (morph.equals("겠") || morph.equals("리"))) {
+                actionCount++;
+            }
+            // 동사 (일반 행동)
+            if (pos.startsWith("VV")) {
                 actionCount++;
             }
         }
-        int actionScore = (int) (((double) actionCount / totalWords) * 300);
+        int actionScore = (int) (((double) actionCount / totalWords) * 400); // 가중치 상향
         actionScore = Math.min(actionScore, 100);
 
         // 4. Type Classification
@@ -72,14 +96,17 @@ public class NlpAnalyzer {
     }
 
     private String determineType(int logic, int emotion, int action) {
+        // 감성형 기준 완화 (60 -> 50)
+        if (emotion >= 50 && emotion >= logic && emotion >= action)
+            return "EMPATH"; // 감성형 (우선순위 높임)
+
         if (logic >= 60 && emotion >= 60)
             return "PHILOSOPHER"; // 사색형
         if (logic >= 60)
             return "ANALYST"; // 탐구형
-        if (emotion >= 60)
-            return "EMPATH"; // 감성형
         if (action >= 60)
             return "ACTIVIST"; // 실천형
+
         return "READER"; // 일반 독서가
     }
 
