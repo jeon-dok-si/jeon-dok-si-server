@@ -53,7 +53,8 @@ public class CharacterService {
                         .user(user)
                         .name("Unknown " + rarity)
                         .rarity(rarity)
-                        .imageUrl("https://via.placeholder.com/150")
+                        .imageUrl(
+                                "https://jeondoksi-files-20251127.s3.ap-southeast-2.amazonaws.com/basic_character.png")
                         .build();
                 return characterRepository.save(character);
             }
