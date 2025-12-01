@@ -87,7 +87,7 @@ public class ReportService {
 
                 // 사용자 스탯 업데이트 및 경험치 지급
                 user.updateStats(analysis.getLogicScore(), analysis.getEmotionScore(), analysis.getActionScore());
-                user.gainExp(50);
+                user.addPoint(50);
 
                 reportRepository.save(report);
                 return com.jeondoksi.jeondoksi.domain.report.dto.ReportDetailResponse.from(report);

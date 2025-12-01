@@ -12,11 +12,7 @@ public class UserResponse {
     private Long userId;
     private String email;
     private String nickname;
-    private Integer level;
-    private Integer currentXp;
     private Integer point; // 포인트 추가
-    private Integer requiredXp;
-    private Double progressPercentage; // 레벨업 진행률 (%)
     private Stats stats;
     private String dominantType; // 주요 성향 타입 (PHILOSOPHER, EMPATH 등)
     private LocalDateTime createdAt;
@@ -32,9 +28,6 @@ public class UserResponse {
     }
 
     public static UserResponse from(User user) {
-        int requiredXp = user.getLevel() * 100;
-        double progress = (double) user.getCurrentXp() / requiredXp * 100;
-
         // 성향 합계 및 평균
         int totalStats = user.getLogicStat() + user.getEmotionStat() + user.getActionStat();
         int avgStats = totalStats / 3;
@@ -46,11 +39,7 @@ public class UserResponse {
                 .userId(user.getUserId())
                 .email(user.getEmail())
                 .nickname(user.getNickname())
-                .level(user.getLevel())
-                .currentXp(user.getCurrentXp())
                 .point(user.getPoint()) // 포인트 매핑
-                .requiredXp(requiredXp)
-                .progressPercentage(Math.round(progress * 10) / 10.0) // 소수점 1자리
                 .stats(Stats.builder()
                         .logic(user.getLogicStat())
                         .emotion(user.getEmotionStat())

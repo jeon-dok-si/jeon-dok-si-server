@@ -48,6 +48,7 @@ dependencies {
 
     implementation 'com.google.code.gson:gson:2.10.1' // JSON parsing
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.0' // Swagger UI - Spring Boot 4.0 compatible
+    implementation 'io.awspring.cloud:spring-cloud-aws-starter-s3:3.1.0' // AWS S3
 }
 
 tasks.named('test') {
