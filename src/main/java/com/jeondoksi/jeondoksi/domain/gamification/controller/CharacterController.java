@@ -73,7 +73,7 @@ public class CharacterController {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
-        characterService.equipCharacter(user, characterId);
+        characterService.equipCharacter(userId, characterId);
         return ApiResponse.success(null);
     }
 }
