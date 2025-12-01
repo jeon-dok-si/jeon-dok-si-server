@@ -1,5 +1,5 @@
 package com.jeondoksi.jeondoksi.domain.gamification.entity;
 
-public enum ItemCategory {
-    HEAD, BODY, FACE
+public enum CharacterRarity {
+    COMMON, RARE, EPIC, UNIQUE
 }

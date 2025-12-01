@@ -29,15 +29,6 @@ public class User extends BaseTimeEntity {
     @Column(nullable = false, length = 50)
     private String nickname;
 
-    // --- 게임 요소 ---
-    @Column(nullable = false)
-    @ColumnDefault("1")
-    private int level = 1;
-
-    @Column(name = "current_xp", nullable = false)
-    @ColumnDefault("0")
-    private int currentXp = 0;
-
     @Column(nullable = false)
     @ColumnDefault("0")
     private int point = 0;
@@ -63,39 +54,10 @@ public class User extends BaseTimeEntity {
         this.email = email;
         this.password = password;
         this.nickname = nickname;
-        this.level = 1;
-        this.currentXp = 0;
         this.point = 0;
         this.logicStat = 0;
         this.emotionStat = 0;
         this.actionStat = 0;
-    }
-
-    /**
-     * 경험치 획득 및 레벨업 로직
-     * 
-     * @param exp 획득할 경험치
-     * @return 레벨업 여부 (true: 레벨업 함, false: 안 함)
-     */
-    public boolean gainExp(int exp) {
-        this.currentXp += exp;
-        this.point += exp; // 포인트도 함께 증가
-
-        boolean leveledUp = false;
-        int requiredXp = getRequiredXpForNextLevel();
-
-        while (this.currentXp >= requiredXp) {
-            this.currentXp -= requiredXp;
-            this.level++;
-            leveledUp = true;
-            requiredXp = getRequiredXpForNextLevel();
-        }
-
-        return leveledUp;
-    }
-
-    private int getRequiredXpForNextLevel() {
-        return this.level * 100;
     }
 
     public void usePoint(int amount) {
@@ -103,6 +65,10 @@ public class User extends BaseTimeEntity {
             throw new IllegalArgumentException("Not enough Points");
         }
         this.point -= amount;
+    }
+
+    public void addPoint(int amount) {
+        this.point += amount;
     }
 
     // 성향 점수 업데이트 (EMA: 지수 이동 평균 적용)

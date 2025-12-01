@@ -201,14 +201,9 @@ public class QuizService {
         log.info("Quiz result - score: {}, isSolved: {}", score, isSolved);
 
         if (isSolved && !alreadySolved) {
-            gainedExp = 100; // 통과 시 100 XP
-            boolean leveledUp = user.gainExp(gainedExp);
-            log.info("User gained {} exp. Current XP: {}, Point: {}", gainedExp, user.getCurrentXp(), user.getPoint());
-
-            if (leveledUp) {
-                log.info("User leveled up! New Level: {}", user.getLevel());
-                // TODO: 레벨업 알림 또는 추가 보상 로직
-            }
+            gainedExp = 100; // 통과 시 100 Point (XP -> Point)
+            user.addPoint(gainedExp);
+            log.info("User gained {} point. Current Point: {}", gainedExp, user.getPoint());
         }
 
         QuizLog logEntity = QuizLog.builder()
