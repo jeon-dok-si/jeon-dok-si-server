@@ -44,18 +44,21 @@ public class RecommendationService {
                 .filter(report -> report.getStatus() == ReportStatus.APPROVED)
                 .collect(Collectors.toList());
 
-        // 2. 읽은 책 ISBN 수집
-        List<String> readIsbns = reports.stream()
+        // 2. 읽은 책 ISBN 및 제목 수집
+        Set<String> readIsbns = reports.stream()
                 .map(report -> report.getBook().getIsbn())
-                .collect(Collectors.toList());
+                .collect(Collectors.toSet());
+
+        Set<String> readTitles = reports.stream()
+                .map(report -> report.getBook().getTitle())
+                .collect(Collectors.toSet());
 
         // 3. 읽지 않은 책 조회 (후보군)
-        List<Book> candidateBooks;
-        if (readIsbns.isEmpty()) {
-            candidateBooks = bookRepository.findAll();
-        } else {
-            candidateBooks = bookRepository.findAllByIsbnNotIn(readIsbns);
-        }
+        List<Book> allBooks = bookRepository.findAll();
+        List<Book> candidateBooks = allBooks.stream()
+                .filter(book -> !readIsbns.contains(book.getIsbn())) // ISBN 중복 제거
+                .filter(book -> !readTitles.contains(book.getTitle())) // 제목 중복 제거 (다른 판본 등)
+                .collect(Collectors.toList());
 
         // 4. 독후감 여부에 따른 전략 분기
         if (reports.isEmpty()) {

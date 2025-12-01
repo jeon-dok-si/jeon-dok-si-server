@@ -89,6 +89,9 @@ public class ReportService {
                 user.updateStats(analysis.getLogicScore(), analysis.getEmotionScore(), analysis.getActionScore());
                 user.addPoint(50);
 
+                // 검증 통과 시 자동 승인
+                report.approve();
+
                 reportRepository.save(report);
                 return com.jeondoksi.jeondoksi.domain.report.dto.ReportDetailResponse.from(report);
         }

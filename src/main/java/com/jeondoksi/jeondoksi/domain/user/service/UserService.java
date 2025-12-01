@@ -22,6 +22,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
+    private final com.jeondoksi.jeondoksi.domain.gamification.service.CharacterService characterService;
 
     // 회원가입
     @Transactional
@@ -36,7 +37,10 @@ public class UserService {
                 .nickname(request.getNickname())
                 .build();
 
-        return userRepository.save(user).getUserId();
+        User savedUser = userRepository.save(user);
+        characterService.grantBasicCharacter(savedUser);
+
+        return savedUser.getUserId();
     }
 
     // 로그인
