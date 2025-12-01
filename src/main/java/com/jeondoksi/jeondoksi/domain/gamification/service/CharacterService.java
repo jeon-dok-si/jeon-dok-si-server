@@ -79,7 +79,7 @@ public class CharacterService {
         character.gainExp(amount);
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public List<Character> getMyCharacters(User user) {
         List<Character> characters = characterRepository.findAllByUser(user);
 
@@ -87,12 +87,18 @@ public class CharacterService {
             return grantBasicCharacter(user);
         }
 
+        // Self-healing: Ensure at least one character is equipped
+        boolean hasEquipped = characters.stream().anyMatch(Character::isEquipped);
+        if (!hasEquipped && !characters.isEmpty()) {
+            Character firstChar = characters.get(0);
+            firstChar.equip();
+            characterRepository.save(firstChar);
+        }
+
         // Sort: Equipped first, then by ID desc
         characters.sort((c1, c2) -> {
-            if (c1.isEquipped() && !c2.isEquipped())
-                return -1;
-            if (!c1.isEquipped() && c2.isEquipped())
-                return 1;
+            if (c1.isEquipped() && !c2.isEquipped()) return -1;
+            if (!c1.isEquipped() && c2.isEquipped()) return 1;
             return c2.getId().compareTo(c1.getId());
         });
 
