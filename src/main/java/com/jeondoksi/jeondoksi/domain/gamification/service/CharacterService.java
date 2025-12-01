@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
@@ -81,7 +82,12 @@ public class CharacterService {
     @Transactional(readOnly = true)
     public List<Character> getMyCharacters(User user) {
         List<Character> characters = characterRepository.findAllByUser(user);
-        // Sort: Equipped character first, then by ID desc
+
+        if (characters.isEmpty()) {
+            return grantBasicCharacter(user);
+        }
+
+        // Sort: Equipped first, then by ID desc
         characters.sort((c1, c2) -> {
             if (c1.isEquipped() && !c2.isEquipped())
                 return -1;
@@ -89,16 +95,42 @@ public class CharacterService {
                 return 1;
             return c2.getId().compareTo(c1.getId());
         });
+
         return characters;
     }
 
-    public void equipCharacter(User user, Long characterId) {
+    @Transactional
+    public List<Character> grantBasicCharacter(User user) {
+        CharacterInfo basicInfo = characterInfoRepository.findByName("Basic Character");
+        if (basicInfo == null) {
+            // Fallback if DB migration hasn't run yet
+            return new ArrayList<>();
+        }
+
+        Character basicCharacter = Character.builder()
+                .user(user)
+                .name(basicInfo.getName())
+                .rarity(basicInfo.getRarity())
+                .imageUrl(basicInfo.getImageUrl())
+                .build();
+
+        // Set as equipped since it's the only one
+        basicCharacter.equip();
+
+        characterRepository.save(basicCharacter);
+
+        return List.of(basicCharacter);
+    }
+
+    public void equipCharacter(Long userId, Long characterId) {
         Character character = characterRepository.findById(characterId)
                 .orElseThrow(() -> new IllegalArgumentException("Character not found"));
 
-        if (!character.getUser().getUserId().equals(user.getUserId())) {
+        if (!character.getUser().getUserId().equals(userId)) {
             throw new IllegalArgumentException("Not your character");
         }
+
+        User user = character.getUser();
 
         // Unequip all other characters
         List<Character> myCharacters = characterRepository.findAllByUser(user);
