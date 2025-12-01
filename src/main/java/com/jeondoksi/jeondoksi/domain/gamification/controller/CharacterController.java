@@ -63,4 +63,17 @@ public class CharacterController {
         characterService.gainExp(characterId, amount);
         return ApiResponse.success(null);
     }
+
+    @Operation(summary = "캐릭터 장착 (대표 캐릭터 설정)")
+    @PostMapping("/{characterId}/equip")
+    public ApiResponse<Void> equipCharacter(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @PathVariable Long characterId) {
+        Long userId = Long.parseLong(userDetails.getUsername());
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+
+        characterService.equipCharacter(user, characterId);
+        return ApiResponse.success(null);
+    }
 }

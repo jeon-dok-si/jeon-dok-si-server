@@ -15,6 +15,7 @@ public class CharacterResponse {
     private int currentXp;
     private int requiredXp;
     private String imageUrl;
+    private boolean isEquipped;
 
     public static CharacterResponse from(Character character) {
         return CharacterResponse.builder()
@@ -25,6 +26,7 @@ public class CharacterResponse {
                 .currentXp(character.getCurrentXp())
                 .requiredXp(character.getLevel() * 100)
                 .imageUrl(character.getImageUrl())
+                .isEquipped(character.isEquipped())
                 .build();
     }
 }
