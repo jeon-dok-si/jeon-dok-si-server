@@ -80,6 +80,42 @@ public class CharacterService {
 
     @Transactional(readOnly = true)
     public List<Character> getMyCharacters(User user) {
-        return characterRepository.findAllByUser(user);
+        List<Character> characters = characterRepository.findAllByUser(user);
+        // Sort: Equipped character first, then by ID desc
+        characters.sort((c1, c2) -> {
+            if (c1.isEquipped() && !c2.isEquipped())
+                return -1;
+            if (!c1.isEquipped() && c2.isEquipped())
+                return 1;
+            return c2.getId().compareTo(c1.getId());
+        });
+        return characters;
+    }
+
+    public void equipCharacter(User user, Long characterId) {
+        Character character = characterRepository.findById(characterId)
+                .orElseThrow(() -> new IllegalArgumentException("Character not found"));
+
+        if (!character.getUser().getUserId().equals(user.getUserId())) {
+            throw new IllegalArgumentException("Not your character");
+        }
+
+        // Unequip all other characters
+        List<Character> myCharacters = characterRepository.findAllByUser(user);
+        for (Character c : myCharacters) {
+            c.unequip();
+        }
+
+        // Equip selected character
+        character.equip();
+    }
+
+    @Transactional(readOnly = true)
+    public String getMainCharacterImage(User user) {
+        return characterRepository.findAllByUser(user).stream()
+                .filter(Character::isEquipped)
+                .findFirst()
+                .map(Character::getImageUrl)
+                .orElse("https://jeondoksi-files-20251127.s3.ap-southeast-2.amazonaws.com/basic_character.png");
     }
 }

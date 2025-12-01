@@ -41,6 +41,18 @@ public class Character extends BaseTimeEntity {
     @Column(name = "image_url", nullable = false)
     private String imageUrl;
 
+    @Column(name = "is_equipped", nullable = false)
+    @ColumnDefault("false")
+    private boolean isEquipped = false;
+
+    public void equip() {
+        this.isEquipped = true;
+    }
+
+    public void unequip() {
+        this.isEquipped = false;
+    }
+
     @Builder
     public Character(User user, String name, CharacterRarity rarity, String imageUrl) {
         this.user = user;
