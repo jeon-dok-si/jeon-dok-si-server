@@ -134,7 +134,7 @@ public class NlpAnalyzer {
                 }
             }
         }
-        int actionScore = (int) (((double) actionCount / totalWords) * 500); // 가중치 상향 (기존 250 -> 1200)
+        int actionScore = (int) (((double) actionCount / totalWords) * 300); // 가중치 상향 (기존 250 -> 1200)
         actionScore = Math.min(actionScore, 100);
 
         // 4. Type Classification
