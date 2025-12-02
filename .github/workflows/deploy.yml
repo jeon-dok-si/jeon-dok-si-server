@@ -50,8 +50,16 @@ jobs:
         username: ${{ secrets.EC2_USERNAME }}
         key: ${{ secrets.EC2_SSH_KEY }}
         script: |
+          echo "=== DEBUG START ==="
+          whoami
+          hostname
+          echo "PATH: $PATH"
+          ls -la /usr/bin/docker || echo "/usr/bin/docker not found"
+          which docker || echo "docker not found in PATH"
+          echo "=== DEBUG END ==="
+
           # Pull the latest image
-          /usr/bin/docker pull ${{ secrets.DOCKER_USERNAME }}/jeondoksi-backend:latest
+          docker pull ${{ secrets.DOCKER_USERNAME }}/jeondoksi-backend:latest
           
           # Stop and remove existing container if it exists
           /usr/bin/docker stop jeondoksi-backend || true
