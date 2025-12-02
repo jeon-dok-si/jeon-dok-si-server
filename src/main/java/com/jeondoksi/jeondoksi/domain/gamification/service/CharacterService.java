@@ -85,6 +85,19 @@ public class CharacterService {
 
         CharacterInfo selectedInfo = filteredCharacters.get(random.nextInt(filteredCharacters.size()));
 
+        // Check if user already owns this character
+        java.util.Optional<Character> existingCharacterOpt = characterRepository.findAllByUser(user).stream()
+                .filter(c -> c.getName().equals(selectedInfo.getName()))
+                .findFirst();
+
+        if (existingCharacterOpt.isPresent()) {
+            // Duplicate found: Grant XP instead
+            Character existingCharacter = existingCharacterOpt.get();
+            int duplicateExpReward = 100; // Reward for duplicate
+            existingCharacter.gainExp(duplicateExpReward);
+            return existingCharacter;
+        }
+
         Character character = Character.builder()
                 .user(user)
                 .name(selectedInfo.getName())
