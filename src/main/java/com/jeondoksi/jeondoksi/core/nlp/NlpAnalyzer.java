@@ -56,9 +56,9 @@ public class NlpAnalyzer {
         }
 
         // 단어 점수 정규화
-        // 목표: 감성 단어가 10% 정도면 100점 (기존 15% -> 10%로 완화)
+        // 목표: 감성 단어가 7% 정도면 100점 (기존 10% -> 7%로 대폭 완화)
         double vocabRatio = vocabScoreRaw / totalWords;
-        double vocabScore = Math.min(vocabRatio * 1000, 100); // 0.1 * 1000 = 100
+        double vocabScore = Math.min(vocabRatio * 1500, 100); // 0.066 * 1500 = 100
 
         // B. Modifier Density (30% Weight)
         int modifierCount = 0;
@@ -69,9 +69,9 @@ public class NlpAnalyzer {
                 modifierCount++;
             }
         }
-        // 밀도 점수: 전체 단어 중 15%가 수식어면 100점
+        // 밀도 점수: 전체 단어 중 10%가 수식어면 100점 (기존 15% -> 10%로 완화)
         double densityRatio = (double) modifierCount / totalWords;
-        double densityScore = Math.min(densityRatio * 666, 100); // 0.15 * 666 ~= 100
+        double densityScore = Math.min(densityRatio * 1000, 100); // 0.1 * 1000 = 100
 
         // Final Emotion Score Calculation (Weighted Sum)
         // Vocab: 70%, Density: 30%
@@ -87,7 +87,8 @@ public class NlpAnalyzer {
 
         // 3. Action Score (Refined)
         int actionCount = 0;
-        for (Token token : tokens) {
+        for (int i = 0; i < tokens.size(); i++) {
+            Token token = tokens.get(i);
             String pos = token.getPos();
             String morph = token.getMorph();
 
@@ -105,8 +106,35 @@ public class NlpAnalyzer {
             if (pos.startsWith("VV")) {
                 actionCount++;
             }
+
+            // 특수 행동 패턴 (User Request)
+            if (i > 0) {
+                Token prevToken = tokens.get(i - 1);
+                String prevPos = prevToken.getPos();
+                String prevMorph = prevToken.getMorph();
+
+                // 1. 소망/갈망 (-고 싶다)
+                // 패턴: EC(-고) + VX(싶)
+                if (pos.equals("VX") && morph.equals("싶") && prevPos.equals("EC") && prevMorph.endsWith("고")) {
+                    actionCount += 2; // 가중치 부여
+                }
+
+                // 2. 의도/노력 (-려 하다)
+                // 패턴: EC(-려/-려고) + VX(하)
+                if (pos.equals("VX") && morph.startsWith("하") && prevPos.equals("EC")
+                        && (prevMorph.endsWith("려") || prevMorph.endsWith("려고"))) {
+                    actionCount += 2; // 가중치 부여
+                }
+
+                // 3. 미래/의지 (-ㄹ 것이다)
+                // 패턴: ETM(-ㄹ/-을) + NNB(것)
+                if (pos.equals("NNB") && morph.equals("것") && prevPos.equals("ETM")
+                        && (prevMorph.endsWith("ㄹ") || prevMorph.endsWith("을"))) {
+                    actionCount += 2; // 가중치 부여
+                }
+            }
         }
-        int actionScore = (int) (((double) actionCount / totalWords) * 250); // 가중치 하향 (기존 800 -> 400)
+        int actionScore = (int) (((double) actionCount / totalWords) * 1200); // 가중치 상향 (기존 250 -> 1200)
         actionScore = Math.min(actionScore, 100);
 
         // 4. Type Classification
