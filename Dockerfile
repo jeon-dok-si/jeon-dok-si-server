@@ -18,7 +18,7 @@ COPY src src
 RUN ./gradlew build -x test --no-daemon
 
 # Stage 2: Run the application
-FROM openjdk:21-jdk-slim
+FROM eclipse-temurin:21-jdk
 WORKDIR /app
 
 # Copy the built JAR from the builder stage
