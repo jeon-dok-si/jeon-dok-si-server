@@ -16,12 +16,13 @@ public class BookExploreController {
     private final BookExploreService bookExploreService;
 
     @GetMapping("/bestsellers")
-    public ApiResponse<List<AladinBookDto>> getOverallBestsellers() {
-        return ApiResponse.success(bookExploreService.getBestsellers(null));
+    public ApiResponse<List<AladinBookDto>> getOverallBestsellers(@RequestParam(defaultValue = "1") int page) {
+        return ApiResponse.success(bookExploreService.getBestsellers(null, page));
     }
 
     @GetMapping("/bestsellers/{categoryId}")
-    public ApiResponse<List<AladinBookDto>> getCategoryBestsellers(@PathVariable Integer categoryId) {
-        return ApiResponse.success(bookExploreService.getBestsellers(categoryId));
+    public ApiResponse<List<AladinBookDto>> getCategoryBestsellers(@PathVariable Integer categoryId,
+            @RequestParam(defaultValue = "1") int page) {
+        return ApiResponse.success(bookExploreService.getBestsellers(categoryId, page));
     }
 }
