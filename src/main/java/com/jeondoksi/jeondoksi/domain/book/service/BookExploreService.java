@@ -41,7 +41,8 @@ public class BookExploreService {
                     .queryParam("start", start) // Use calculated start index
                     .queryParam("SearchTarget", "Book")
                     .queryParam("output", "js")
-                    .queryParam("Version", "20131101");
+                    .queryParam("Version", "20131101")
+                    .queryParam("Cover", "Big");
 
             if (categoryId != null) {
                 builder.queryParam("CategoryId", categoryId);
