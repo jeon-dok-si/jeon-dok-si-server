@@ -85,26 +85,32 @@ public class NlpAnalyzer {
         int emotionScore = (int) totalEmotionScore;
         emotionScore = Math.min(emotionScore, 100);
 
-        // 3. Action Score (Refined)
-        int actionCount = 0;
+        // 3. Action Score (Refined with Strong Verbs)
+        double actionWeightedScore = 0;
         for (int i = 0; i < tokens.size(); i++) {
             Token token = tokens.get(i);
             String pos = token.getPos();
             String morph = token.getMorph();
 
+            // 1. Strong Action Verbs (3.0 points)
+            if (sentimentDictionary.isStrongActionVerb(morph)) {
+                actionWeightedScore += 3.0;
+            }
+            // 2. Generic Verbs (0.5 points) - Only if not a strong verb
+            else if (pos.startsWith("VV")) {
+                actionWeightedScore += 0.5;
+            }
+
+            // 3. Intent/Will Patterns (2.0 points)
             // 청유형 어미 (-자, -ㅂ시다), 의지 (-겠다, -ㄹ게)
             if (pos.equals("EC") || pos.equals("EF")) {
                 if (morph.endsWith("자") || morph.endsWith("시다") || morph.endsWith("게") || morph.endsWith("다")) {
-                    actionCount++;
+                    actionWeightedScore += 2.0;
                 }
             }
             // 선어말어미 (의지)
             if (pos.equals("EP") && (morph.equals("겠") || morph.equals("리"))) {
-                actionCount++;
-            }
-            // 동사 (일반 행동)
-            if (pos.startsWith("VV")) {
-                actionCount++;
+                actionWeightedScore += 2.0;
             }
 
             // 특수 행동 패턴 (User Request)
@@ -116,25 +122,29 @@ public class NlpAnalyzer {
                 // 1. 소망/갈망 (-고 싶다)
                 // 패턴: EC(-고) + VX(싶)
                 if (pos.equals("VX") && morph.equals("싶") && prevPos.equals("EC") && prevMorph.endsWith("고")) {
-                    actionCount += 2; // 가중치 부여
+                    actionWeightedScore += 2.0;
                 }
 
                 // 2. 의도/노력 (-려 하다)
                 // 패턴: EC(-려/-려고) + VX(하)
                 if (pos.equals("VX") && morph.startsWith("하") && prevPos.equals("EC")
                         && (prevMorph.endsWith("려") || prevMorph.endsWith("려고"))) {
-                    actionCount += 2; // 가중치 부여
+                    actionWeightedScore += 2.0;
                 }
 
                 // 3. 미래/의지 (-ㄹ 것이다)
                 // 패턴: ETM(-ㄹ/-을) + NNB(것)
                 if (pos.equals("NNB") && morph.equals("것") && prevPos.equals("ETM")
                         && (prevMorph.endsWith("ㄹ") || prevMorph.endsWith("을"))) {
-                    actionCount += 2; // 가중치 부여
+                    actionWeightedScore += 2.0;
                 }
             }
         }
-        int actionScore = (int) (((double) actionCount / totalWords) * 300); // 가중치 상향 (기존 250 -> 1200)
+        // 가중치 점수 정규화
+        // 목표: 가중치 합이 전체 단어 수의 20% 정도면 100점
+        // 예: 100단어 중 5개가 Strong Verb(15점) + 2개가 Intent(4점) + 5개가 Generic(2.5점) = 21.5점
+        // -> 100점
+        int actionScore = (int) ((actionWeightedScore / totalWords) * 500);
         actionScore = Math.min(actionScore, 100);
 
         // 4. Type Classification
