@@ -1,5 +1,7 @@
 package com.jeondoksi.jeondoksi.domain.user.dto;
 
+import com.jeondoksi.jeondoksi.domain.gamification.dto.CharacterResponse;
+import com.jeondoksi.jeondoksi.domain.gamification.entity.Character;
 import com.jeondoksi.jeondoksi.domain.user.entity.User;
 import lombok.Builder;
 import lombok.Getter;
@@ -15,6 +17,7 @@ public class UserResponse {
     private Integer point; // 포인트 추가
     private Stats stats;
     private String dominantType; // 주요 성향 타입 (PHILOSOPHER, EMPATH 등)
+    private CharacterResponse character; // 장착한 캐릭터 정보 (경험치 포함)
     private LocalDateTime createdAt;
 
     @Getter
@@ -27,7 +30,7 @@ public class UserResponse {
         private Integer average; // 평균
     }
 
-    public static UserResponse from(User user) {
+    public static UserResponse from(User user, Character character) {
         // 성향 합계 및 평균
         int totalStats = user.getLogicStat() + user.getEmotionStat() + user.getActionStat();
         int avgStats = totalStats / 3;
@@ -48,8 +51,14 @@ public class UserResponse {
                         .average(avgStats)
                         .build())
                 .dominantType(dominantType)
+                .character(character != null ? CharacterResponse.from(character) : null)
                 .createdAt(user.getCreatedAt())
                 .build();
+    }
+
+    // 하위 호환성을 위해 기존 메서드 유지 (character 없이 호출 시 null 처리)
+    public static UserResponse from(User user) {
+        return from(user, null);
     }
 
     /**

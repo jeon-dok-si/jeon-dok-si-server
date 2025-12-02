@@ -23,6 +23,7 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
     private final com.jeondoksi.jeondoksi.domain.gamification.service.CharacterService characterService;
+    private final com.jeondoksi.jeondoksi.domain.gamification.repository.CharacterRepository characterRepository;
 
     // 회원가입
     @Transactional
@@ -60,6 +61,12 @@ public class UserService {
     public UserResponse getMyProfile(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
-        return UserResponse.from(user);
+
+        // 장착한 캐릭터 조회
+        com.jeondoksi.jeondoksi.domain.gamification.entity.Character equippedCharacter = characterRepository
+                .findByUserAndIsEquippedTrue(user)
+                .orElse(null);
+
+        return UserResponse.from(user, equippedCharacter);
     }
 }
