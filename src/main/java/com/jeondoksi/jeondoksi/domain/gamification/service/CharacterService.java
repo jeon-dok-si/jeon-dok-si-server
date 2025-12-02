@@ -63,7 +63,7 @@ public class CharacterService {
 
         // Filter out "Basic Character" from gacha pool
         List<CharacterInfo> filteredCharacters = availableCharacters.stream()
-                .filter(info -> !info.getName().equals("Basic Character"))
+                .filter(info -> !info.getName().equals("기본 캐릭터"))
                 .toList();
 
         if (filteredCharacters.isEmpty()) {
@@ -75,7 +75,7 @@ public class CharacterService {
             // But user explicitly said NO Basic Character.
             // So let's try to find ANY character that is not Basic Character.
             filteredCharacters = characterInfoRepository.findAll().stream()
-                    .filter(info -> !info.getName().equals("Basic Character"))
+                    .filter(info -> !info.getName().equals("기본 캐릭터"))
                     .toList();
 
             if (filteredCharacters.isEmpty()) {
@@ -131,7 +131,7 @@ public class CharacterService {
 
     @Transactional
     public List<Character> grantBasicCharacter(User user) {
-        CharacterInfo basicInfo = characterInfoRepository.findByName("Basic Character");
+        CharacterInfo basicInfo = characterInfoRepository.findByName("기본 캐릭터");
         if (basicInfo == null) {
             // Fallback if DB migration hasn't run yet
             return new ArrayList<>();
