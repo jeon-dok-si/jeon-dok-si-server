@@ -70,11 +70,11 @@ jobs:
             --name jeondoksi-backend \
             -p 8080:8080 \
             -e SPRING_PROFILES_ACTIVE=prod \
-            -e JWT_SECRET=${{ secrets.JWT_SECRET }} \
+            -e JWT_SECRET="${{ secrets.JWT_SECRET }}" \
             -e JWT_EXPIRATION=86400000 \
-            -e SPRING_DATASOURCE_URL=${{ secrets.DB_URL }} \
-            -e SPRING_DATASOURCE_USERNAME=${{ secrets.DB_USERNAME }} \
-            -e SPRING_DATASOURCE_PASSWORD=${{ secrets.DB_PASSWORD }} \
+            -e SPRING_DATASOURCE_URL="${{ secrets.DB_URL }}" \
+            -e SPRING_DATASOURCE_USERNAME="${{ secrets.DB_USERNAME }}" \
+            -e SPRING_DATASOURCE_PASSWORD="${{ secrets.DB_PASSWORD }}" \
             -e SPRING_DATA_REDIS_HOST=172.17.0.1 \
             ${{ secrets.DOCKER_USERNAME }}/jeondoksi-backend:latest
           
