@@ -70,6 +70,7 @@ jobs:
             --name jeondoksi-backend \
             -p 8080:8080 \
             -e SPRING_PROFILES_ACTIVE=prod \
+            -e JWT_SECRET=${{ secrets.JWT_SECRET }} \
             ${{ secrets.DOCKER_USERNAME }}/jeondoksi-backend:latest
           
           # Clean up unused images to save space
