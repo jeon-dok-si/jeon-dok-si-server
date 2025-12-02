@@ -144,7 +144,7 @@ public class NlpAnalyzer {
         // 목표: 가중치 합이 전체 단어 수의 20% 정도면 100점
         // 예: 100단어 중 5개가 Strong Verb(15점) + 2개가 Intent(4점) + 5개가 Generic(2.5점) = 21.5점
         // -> 100점
-        int actionScore = (int) ((actionWeightedScore / totalWords) * 500);
+        int actionScore = (int) ((actionWeightedScore / totalWords) * 300);
         actionScore = Math.min(actionScore, 100);
 
         // 4. Type Classification
