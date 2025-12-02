@@ -44,21 +44,40 @@ public class RecommendationService {
                 .filter(report -> report.getStatus() == ReportStatus.APPROVED)
                 .collect(Collectors.toList());
 
-        // 2. 읽은 책 ISBN 및 제목 수집
+        // 2. 읽은 책 ISBN 및 정규화된 제목 수집
         Set<String> readIsbns = reports.stream()
                 .map(report -> report.getBook().getIsbn())
                 .collect(Collectors.toSet());
 
-        Set<String> readTitles = reports.stream()
-                .map(report -> report.getBook().getTitle())
+        Set<String> readNormalizedTitles = reports.stream()
+                .map(report -> normalizeTitle(report.getBook().getTitle()))
                 .collect(Collectors.toSet());
 
         // 3. 읽지 않은 책 조회 (후보군)
         List<Book> allBooks = bookRepository.findAll();
-        List<Book> candidateBooks = allBooks.stream()
-                .filter(book -> !readIsbns.contains(book.getIsbn())) // ISBN 중복 제거
-                .filter(book -> !readTitles.contains(book.getTitle())) // 제목 중복 제거 (다른 판본 등)
+
+        // 3-1. 읽은 책 제외 (ISBN 및 정규화된 제목 기준)
+        List<Book> unreadBooks = allBooks.stream()
+                .filter(book -> !readIsbns.contains(book.getIsbn()))
+                .filter(book -> !readNormalizedTitles.contains(normalizeTitle(book.getTitle())))
                 .collect(Collectors.toList());
+
+        // 3-2. 중복된 책 제거 (정규화된 제목 기준, 제목이 가장 짧은 것 우선)
+        Map<String, Book> uniqueBooksMap = new HashMap<>();
+        for (Book book : unreadBooks) {
+            String normalizedTitle = normalizeTitle(book.getTitle());
+            if (!uniqueBooksMap.containsKey(normalizedTitle)) {
+                uniqueBooksMap.put(normalizedTitle, book);
+            } else {
+                // 이미 있는 책보다 현재 책의 제목이 더 짧으면 교체 (원본에 가까울 확률 높음)
+                Book existingBook = uniqueBooksMap.get(normalizedTitle);
+                if (book.getTitle().length() < existingBook.getTitle().length()) {
+                    uniqueBooksMap.put(normalizedTitle, book);
+                }
+            }
+        }
+
+        List<Book> candidateBooks = new ArrayList<>(uniqueBooksMap.values());
 
         // 4. 독후감 여부에 따른 전략 분기
         if (reports.isEmpty()) {
@@ -66,6 +85,20 @@ public class RecommendationService {
         } else {
             return recommendForExistingUser(user, reports, candidateBooks);
         }
+    }
+
+    /**
+     * 책 제목 정규화
+     * - 괄호 및 괄호 안의 내용 제거
+     * - 앞뒤 공백 제거
+     * 예: "불편한 편의점 (벚꽃 에디션)" -> "불편한 편의점"
+     */
+    private String normalizeTitle(String title) {
+        if (title == null) {
+            return "";
+        }
+        // 괄호 (...) 또는 [...] 및 그 안의 내용 제거
+        return title.replaceAll("\\(.*?\\)|\\[.*?\\]", "").trim();
     }
 
     /**
@@ -121,29 +154,48 @@ public class RecommendationService {
         // 4. 사용자 성향 기반 가중치 적용
         Map<Book, Double> finalScores = applyUserPersonalityWeight(bookScores, user, reports);
 
-        // 5. 상위 10권 추출
-        List<Book> top10Books = finalScores.entrySet().stream()
+        // 5. 전체 후보군 정렬 (점수 내림차순)
+        List<Book> sortedCandidates = finalScores.entrySet().stream()
                 .sorted(Map.Entry.<Book, Double>comparingByValue().reversed())
-                .limit(10)
                 .map(Map.Entry::getKey)
                 .collect(Collectors.toList());
 
-        // 6. 상위 10권이 없으면 전체에서 랜덤
-        if (top10Books.isEmpty()) {
+        // 6. Top 10 (Fit) 선정
+        List<Book> top10Books = sortedCandidates.stream()
+                .limit(10)
+                .collect(Collectors.toList());
+
+        // 7. 나머지에서 5권 랜덤 (Discovery) 선정
+        List<Book> remainingBooks = sortedCandidates.stream()
+                .skip(10)
+                .collect(Collectors.toList());
+
+        Collections.shuffle(remainingBooks, random);
+        List<Book> discoveryBooks = remainingBooks.stream()
+                .limit(5)
+                .collect(Collectors.toList());
+
+        // 8. Pool 생성 (Top 10 + Discovery 5)
+        List<Book> pool = new ArrayList<>(top10Books);
+        pool.addAll(discoveryBooks);
+
+        // 9. Pool에서 3권 랜덤 선택
+        if (pool.isEmpty()) {
             return recommendForNewUser(candidateBooks);
         }
 
-        // 7. 상위 10권 중 랜덤 3권 선택 (다양성 확보)
-        Collections.shuffle(top10Books, random);
-        List<Book> selectedBooks = top10Books.stream()
-                .limit(Math.min(3, top10Books.size()))
+        Collections.shuffle(pool, random);
+        List<Book> selectedBooks = pool.stream()
+                .limit(Math.min(3, pool.size()))
                 .collect(Collectors.toList());
 
-        // 8. 응답 생성
+        // 10. 응답 생성
         return selectedBooks.stream()
                 .map(book -> {
                     double score = finalScores.get(book);
-                    String reason = generateReason(score, user);
+                    // Top 10에 포함되면 Fit, 아니면 Discovery
+                    boolean isFit = top10Books.contains(book);
+                    String reason = generateReason(score, isFit);
                     return RecommendationResponse.of(book, reason);
                 })
                 .collect(Collectors.toList());
@@ -283,13 +335,19 @@ public class RecommendationService {
     /**
      * 추천 이유 생성
      */
-    private String generateReason(double score, User user) {
+    /**
+     * 추천 이유 생성
+     */
+    private String generateReason(double score, boolean isFit) {
+        if (!isFit) {
+            return "새로운 취향을 발견해보세요!";
+        }
         if (score >= 80) {
             return String.format("당신의 취향과 %.1f%% 일치", score);
         } else if (score >= 60) {
             return String.format("당신에게 추천 (%.1f%% 일치)", score);
         } else {
-            return String.format("새로운 장르에 도전해보세요 (%.1f%% 일치)", score);
+            return String.format("이런 책은 어떠세요? (%.1f%% 일치)", score);
         }
     }
 
