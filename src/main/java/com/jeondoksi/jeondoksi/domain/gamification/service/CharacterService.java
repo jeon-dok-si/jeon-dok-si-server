@@ -61,19 +61,19 @@ public class CharacterService {
             }
         }
 
-        // Filter out "Basic Character" from gacha pool
+        // Filter out "기본 캐릭터" from gacha pool
         List<CharacterInfo> filteredCharacters = availableCharacters.stream()
                 .filter(info -> !info.getName().equals("기본 캐릭터"))
                 .toList();
 
         if (filteredCharacters.isEmpty()) {
-            // If filtering removed everything (e.g. only Basic Character existed in that
+            // If filtering removed everything (e.g. only 기본 캐릭터 existed in that
             // rarity),
             // try fallback to other rarities or handle gracefully.
             // For now, if filtered list is empty, we might need to re-fetch or just return
-            // Basic Character as last resort?
-            // But user explicitly said NO Basic Character.
-            // So let's try to find ANY character that is not Basic Character.
+            // 기본 캐릭터 as last resort?
+            // But user explicitly said NO 기본 캐릭터.
+            // So let's try to find ANY character that is not 기본 캐릭터.
             filteredCharacters = characterInfoRepository.findAll().stream()
                     .filter(info -> !info.getName().equals("기본 캐릭터"))
                     .toList();
