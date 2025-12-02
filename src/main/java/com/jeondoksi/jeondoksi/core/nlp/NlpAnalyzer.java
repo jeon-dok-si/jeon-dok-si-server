@@ -34,8 +34,8 @@ public class NlpAnalyzer {
         // 1. Logic Score (Improved)
         int logicScore = textComplexityMetric.calculateLogicScore(text, analyzeResult);
 
-        // 2. Emotion Score (Advanced Composite Metric)
-        // A. Vocabulary Score (기존 감성 사전 기반)
+        // 2. Emotion Score (Refined based on User Feedback)
+        // A. Vocabulary Score (70% Weight)
         double vocabScoreRaw = 0;
         int totalWords = Math.max(tokens.size(), 1);
 
@@ -54,60 +54,32 @@ public class NlpAnalyzer {
                 vocabScoreRaw += (wordScore * multiplier);
             }
         }
-        // 단어 점수 정규화 (전체 단어 중 감성 점수 비중)
-        // 목표: 감성 단어가 15% 정도면 100점
-        double vocabRatio = vocabScoreRaw / totalWords;
-        double vocabScore = Math.min(vocabRatio * 600, 100); // 0.166 * 600 = 100
 
-        // B. Modifier Density (형용사/부사 밀도)
+        // 단어 점수 정규화
+        // 목표: 감성 단어가 10% 정도면 100점 (기존 15% -> 10%로 완화)
+        double vocabRatio = vocabScoreRaw / totalWords;
+        double vocabScore = Math.min(vocabRatio * 1000, 100); // 0.1 * 1000 = 100
+
+        // B. Modifier Density (30% Weight)
         int modifierCount = 0;
-        java.util.Set<String> uniqueModifiers = new java.util.HashSet<>();
 
         for (Token token : tokens) {
             String pos = token.getPos();
             if (pos.startsWith("VA") || pos.startsWith("MAG")) { // 형용사, 일반부사
                 modifierCount++;
-                uniqueModifiers.add(token.getMorph());
             }
         }
         // 밀도 점수: 전체 단어 중 15%가 수식어면 100점
         double densityRatio = (double) modifierCount / totalWords;
-        double densityScore = Math.min(densityRatio * 600, 100);
-
-        // C. Modifier Diversity (수식어 다양성)
-        // 같은 수식어를 반복하지 않고 다양하게 썼는지
-        double diversityScore = 0;
-        if (modifierCount > 0) {
-            double diversityRatio = (double) uniqueModifiers.size() / modifierCount;
-            diversityScore = diversityRatio * 100; // 1.0이면 100점
-        }
-
-        // D. Emotional Endings (감성적 어미)
-        int emotionalEndingCount = 0;
-        int sentenceCount = 0;
-        for (Token token : tokens) {
-            String pos = token.getPos();
-            String morph = token.getMorph();
-
-            if (pos.equals("EF")) { // 종결어미
-                sentenceCount++;
-                if (sentimentDictionary.isEmotionalEnding(morph)) {
-                    emotionalEndingCount++;
-                }
-            }
-        }
-        // 어미 점수: 문장 3개 중 1개가 감성 어미면 100점 (33%)
-        double endingRatio = sentenceCount > 0 ? (double) emotionalEndingCount / sentenceCount : 0;
-        double endingScore = Math.min(endingRatio * 300, 100);
+        double densityScore = Math.min(densityRatio * 666, 100); // 0.15 * 666 ~= 100
 
         // Final Emotion Score Calculation (Weighted Sum)
-        // Vocab: 40%, Density: 30%, Diversity: 20%, Ending: 10%
-        double totalEmotionScore = (vocabScore * 0.4) + (densityScore * 0.3) + (diversityScore * 0.2)
-                + (endingScore * 0.1);
+        // Vocab: 70%, Density: 30%
+        double totalEmotionScore = (vocabScore * 0.7) + (densityScore * 0.3);
 
-        // 보정: 감성 단어가 하나도 없으면 다른 지표가 높아도 점수를 낮춤 (False Positive 방지)
+        // 보정: 감성 단어가 하나도 없으면 점수를 대폭 낮춤 (False Positive 방지)
         if (vocabScoreRaw == 0) {
-            totalEmotionScore *= 0.5;
+            totalEmotionScore *= 0.2;
         }
 
         int emotionScore = (int) totalEmotionScore;
