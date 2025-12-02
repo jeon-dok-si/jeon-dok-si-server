@@ -56,10 +56,23 @@ public class RecommendationService {
         // 3. 읽지 않은 책 조회 (후보군)
         List<Book> allBooks = bookRepository.findAll();
 
-        // 3-1. 읽은 책 제외 (ISBN 및 정규화된 제목 기준)
+        // 3-1. 읽은 책 제외 (ISBN 및 정규화된 제목 기준 + 유사도 기준)
         List<Book> unreadBooks = allBooks.stream()
                 .filter(book -> !readIsbns.contains(book.getIsbn()))
-                .filter(book -> !readNormalizedTitles.contains(normalizeTitle(book.getTitle())))
+                .filter(book -> {
+                    String title = normalizeTitle(book.getTitle());
+                    // 1. 완전 일치 제외
+                    if (readNormalizedTitles.contains(title)) {
+                        return false;
+                    }
+                    // 2. 유사도 60% 이상 제외 (시리즈물, 비슷한 제목 방지)
+                    for (String readTitle : readNormalizedTitles) {
+                        if (calculateStringSimilarity(title, readTitle) >= 0.6) {
+                            return false;
+                        }
+                    }
+                    return true;
+                })
                 .collect(Collectors.toList());
 
         // 3-2. 중복된 책 제거 (정규화된 제목 기준, 제목이 가장 짧은 것 우선)
@@ -179,15 +192,44 @@ public class RecommendationService {
         List<Book> pool = new ArrayList<>(top10Books);
         pool.addAll(discoveryBooks);
 
-        // 9. Pool에서 3권 랜덤 선택
+        // 9. Pool에서 3권 랜덤 선택 (상호 유사도 필터링 적용)
         if (pool.isEmpty()) {
             return recommendForNewUser(candidateBooks);
         }
 
         Collections.shuffle(pool, random);
-        List<Book> selectedBooks = pool.stream()
-                .limit(Math.min(3, pool.size()))
-                .collect(Collectors.toList());
+        List<Book> selectedBooks = new ArrayList<>();
+
+        for (Book candidate : pool) {
+            if (selectedBooks.size() >= 3)
+                break;
+
+            boolean isSimilar = false;
+            String candidateTitle = normalizeTitle(candidate.getTitle());
+
+            for (Book selected : selectedBooks) {
+                String selectedTitle = normalizeTitle(selected.getTitle());
+                if (calculateStringSimilarity(candidateTitle, selectedTitle) >= 0.6) {
+                    isSimilar = true;
+                    break;
+                }
+            }
+
+            if (!isSimilar) {
+                selectedBooks.add(candidate);
+            }
+        }
+
+        // 만약 3권을 못 채웠다면, 남은 것 중에서 중복되지 않게 채움 (유사도 무시)
+        if (selectedBooks.size() < 3) {
+            for (Book candidate : pool) {
+                if (selectedBooks.size() >= 3)
+                    break;
+                if (!selectedBooks.contains(candidate)) {
+                    selectedBooks.add(candidate);
+                }
+            }
+        }
 
         // 10. 응답 생성
         return selectedBooks.stream()
@@ -367,6 +409,51 @@ public class RecommendationService {
             return 0.0;
         }
         return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
+    }
+
+    /**
+     * 문자열 유사도 계산 (Levenshtein Distance)
+     *
+     * @return 0.0 ~ 1.0
+     */
+    private double calculateStringSimilarity(String s1, String s2) {
+        if (s1 == null || s2 == null) {
+            return 0.0;
+        }
+
+        int maxLen = Math.max(s1.length(), s2.length());
+        if (maxLen == 0) {
+            return 1.0;
+        }
+
+        int distance = levenshteinDistance(s1, s2);
+        return 1.0 - ((double) distance / maxLen);
+    }
+
+    /**
+     * Levenshtein Distance 계산 (편집 거리)
+     */
+    private int levenshteinDistance(String s1, String s2) {
+        int[][] dp = new int[s1.length() + 1][s2.length() + 1];
+
+        for (int i = 0; i <= s1.length(); i++) {
+            dp[i][0] = i;
+        }
+        for (int j = 0; j <= s2.length(); j++) {
+            dp[0][j] = j;
+        }
+
+        for (int i = 1; i <= s1.length(); i++) {
+            for (int j = 1; j <= s2.length(); j++) {
+                int cost = (s1.charAt(i - 1) == s2.charAt(j - 1)) ? 0 : 1;
+                dp[i][j] = Math.min(Math.min(
+                        dp[i - 1][j] + 1, // 삭제
+                        dp[i][j - 1] + 1), // 삽입
+                        dp[i - 1][j - 1] + cost); // 교체
+            }
+        }
+
+        return dp[s1.length()][s2.length()];
     }
 
     @lombok.Value

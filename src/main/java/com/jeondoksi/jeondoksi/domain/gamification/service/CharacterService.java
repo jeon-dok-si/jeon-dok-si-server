@@ -61,7 +61,29 @@ public class CharacterService {
             }
         }
 
-        CharacterInfo selectedInfo = availableCharacters.get(random.nextInt(availableCharacters.size()));
+        // Filter out "Basic Character" from gacha pool
+        List<CharacterInfo> filteredCharacters = availableCharacters.stream()
+                .filter(info -> !info.getName().equals("Basic Character"))
+                .toList();
+
+        if (filteredCharacters.isEmpty()) {
+            // If filtering removed everything (e.g. only Basic Character existed in that
+            // rarity),
+            // try fallback to other rarities or handle gracefully.
+            // For now, if filtered list is empty, we might need to re-fetch or just return
+            // Basic Character as last resort?
+            // But user explicitly said NO Basic Character.
+            // So let's try to find ANY character that is not Basic Character.
+            filteredCharacters = characterInfoRepository.findAll().stream()
+                    .filter(info -> !info.getName().equals("Basic Character"))
+                    .toList();
+
+            if (filteredCharacters.isEmpty()) {
+                throw new IllegalStateException("No available characters for gacha");
+            }
+        }
+
+        CharacterInfo selectedInfo = filteredCharacters.get(random.nextInt(filteredCharacters.size()));
 
         Character character = Character.builder()
                 .user(user)

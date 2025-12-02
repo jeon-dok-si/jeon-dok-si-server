@@ -54,10 +54,10 @@ public class NlpAnalyzer {
             }
         }
 
-        // 증폭 계수 적용 (조금만 감성적이어도 점수 뻥튀기)
-        // 전체 단어 중 감성 단어 비중이 5%만 되어도 만점에 가깝게
+        // 증폭 계수 적용 (조금만 감성적이어도 점수 뻥튀기 방지)
+        // 전체 단어 중 감성 단어 비중이 20%는 되어야 만점 (기존 5% -> 20%)
         double emotionRatio = totalEmotionScore / totalWords;
-        int emotionScore = (int) (emotionRatio * 2000); // 가중치 대폭 상향 (기존 500 -> 2000)
+        int emotionScore = (int) (emotionRatio * 500); // 가중치 하향 (기존 2000 -> 500)
         emotionScore = Math.min(emotionScore, 100);
 
         // 3. Action Score (Refined)
@@ -81,7 +81,7 @@ public class NlpAnalyzer {
                 actionCount++;
             }
         }
-        int actionScore = (int) (((double) actionCount / totalWords) * 400); // 가중치 상향
+        int actionScore = (int) (((double) actionCount / totalWords) * 800); // 가중치 상향 (기존 400 -> 800)
         actionScore = Math.min(actionScore, 100);
 
         // 4. Type Classification

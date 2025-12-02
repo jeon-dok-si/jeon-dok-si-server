@@ -37,19 +37,22 @@ public class TextComplexityMetric {
         // 4. 어휘 다양성 (TTR: Type-Token Ratio)
         double ttr = calculateTTR(nouns);
 
-        // 점수 계산 (가중치 적용)
-        // TTR: 0.5~0.8 사이가 일반적. 100점 만점 환산 시 30점 비중
-        // 문장 길이: 50자 내외가 적당. 20점 비중
-        // 접속사: 10개 이상이면 만점. 20점 비중
-        // 고난이도 어휘: 10개 이상이면 만점. 30점 비중
+        // 점수 계산 (가중치 적용 - 논리 점수 상향 조정)
+        // TTR: 0.5~0.8 사이가 일반적. 100점 만점 환산 시 40점 비중 (기존 30)
+        // 문장 길이: 50자 내외가 적당. 30점 비중 (기존 20)
+        // 접속사: 10개 이상이면 만점. 30점 비중 (기존 20)
+        // 고난이도 어휘: 10개 이상이면 만점. 40점 비중 (기존 30)
 
-        double ttrScore = ttr * 30; // Max 30
-        double lengthScore = Math.min(avgLength, 50) * 0.4; // Max 20
-        double conjunctionScore = Math.min(conjunctionCount, 10) * 2; // Max 20
-        double vocabularyScore = Math.min(hardNounCount, 10) * 3; // Max 30
+        double ttrScore = ttr * 40; // Max 40
+        double lengthScore = Math.min(avgLength, 80) * 0.5; // Max 40 (평균 길이 80자까지 인정)
+        double conjunctionScore = Math.min(conjunctionCount, 10) * 3; // Max 30
+        double vocabularyScore = Math.min(hardNounCount, 15) * 3; // Max 45 (15개까지 인정)
 
+        // 총합이 100을 넘을 수 있으므로 100으로 제한 (하지만 기본 점수가 높아지도록 유도)
         double totalScore = ttrScore + lengthScore + conjunctionScore + vocabularyScore;
-        return (int) Math.min(totalScore, 100);
+
+        // 보정: 논리적인 글은 기본적으로 점수가 잘 나오도록 1.2배
+        return (int) Math.min(totalScore * 1.2, 100);
     }
 
     private double calculateTTR(List<String> tokens) {
