@@ -50,21 +50,19 @@ jobs:
         username: ${{ secrets.EC2_USERNAME }}
         key: ${{ secrets.EC2_SSH_KEY }}
         script: |
-          export PATH=$PATH:/usr/bin:/usr/local/bin:/snap/bin
           # Pull the latest image
-          docker pull ${{ secrets.DOCKER_USERNAME }}/jeondoksi-backend:latest
+          /usr/bin/docker pull ${{ secrets.DOCKER_USERNAME }}/jeondoksi-backend:latest
           
           # Stop and remove existing container if it exists
-          docker stop jeondoksi-backend || true
-          docker rm jeondoksi-backend || true
+          /usr/bin/docker stop jeondoksi-backend || true
+          /usr/bin/docker rm jeondoksi-backend || true
           
           # Run the new container
-          # Adjust environment variables as needed, or pass them via -e or --env-file
-          docker run -d \
+          /usr/bin/docker run -d \
             --name jeondoksi-backend \
             -p 8080:8080 \
             -e SPRING_PROFILES_ACTIVE=prod \
             ${{ secrets.DOCKER_USERNAME }}/jeondoksi-backend:latest
           
           # Clean up unused images to save space
-          docker image prune -f
+          /usr/bin/docker image prune -f
