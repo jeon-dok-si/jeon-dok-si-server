@@ -97,8 +97,10 @@ public class CharacterService {
 
         // Sort: Equipped first, then by ID desc
         characters.sort((c1, c2) -> {
-            if (c1.isEquipped() && !c2.isEquipped()) return -1;
-            if (!c1.isEquipped() && c2.isEquipped()) return 1;
+            if (c1.isEquipped() && !c2.isEquipped())
+                return -1;
+            if (!c1.isEquipped() && c2.isEquipped())
+                return 1;
             return c2.getId().compareTo(c1.getId());
         });
 
@@ -155,5 +157,16 @@ public class CharacterService {
                 .findFirst()
                 .map(Character::getImageUrl)
                 .orElse("https://jeondoksi-files-20251127.s3.ap-southeast-2.amazonaws.com/basic_character.png");
+    }
+
+    public void gainExpForEquippedCharacter(User user, int amount) {
+        Character equippedCharacter = characterRepository.findAllByUser(user).stream()
+                .filter(Character::isEquipped)
+                .findFirst()
+                .orElse(null);
+
+        if (equippedCharacter != null) {
+            equippedCharacter.gainExp(amount);
+        }
     }
 }

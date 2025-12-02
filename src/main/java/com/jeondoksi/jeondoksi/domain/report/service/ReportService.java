@@ -28,6 +28,7 @@ public class ReportService {
         private final UserRepository userRepository;
         private final BookRepository bookRepository;
         private final com.jeondoksi.jeondoksi.domain.book.repository.BookAiSampleRepository bookAiSampleRepository;
+        private final com.jeondoksi.jeondoksi.domain.gamification.service.CharacterService characterService;
         private final NlpAnalyzer nlpAnalyzer;
 
         // 유사도 임계치 상수 (후하게 설정)
@@ -88,6 +89,7 @@ public class ReportService {
                 // 사용자 스탯 업데이트 및 경험치 지급
                 user.updateStats(analysis.getLogicScore(), analysis.getEmotionScore(), analysis.getActionScore());
                 user.addPoint(50);
+                characterService.gainExpForEquippedCharacter(user, 50);
 
                 // 검증 통과 시 자동 승인
                 report.approve();

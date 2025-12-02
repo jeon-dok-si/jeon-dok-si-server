@@ -44,6 +44,7 @@ public class QuizService {
     private final BookRepository bookRepository;
     private final UserRepository userRepository;
     private final ReportRepository reportRepository;
+    private final com.jeondoksi.jeondoksi.domain.gamification.service.CharacterService characterService;
     private final OpenAiClient openAiClient;
     private final NaverBookClient naverBookClient;
     private final Gson gson;
@@ -203,6 +204,7 @@ public class QuizService {
         if (isSolved && !alreadySolved) {
             gainedExp = 100; // 통과 시 100 Point (XP -> Point)
             user.addPoint(gainedExp);
+            characterService.gainExpForEquippedCharacter(user, gainedExp);
             log.info("User gained {} point. Current Point: {}", gainedExp, user.getPoint());
         }
 
