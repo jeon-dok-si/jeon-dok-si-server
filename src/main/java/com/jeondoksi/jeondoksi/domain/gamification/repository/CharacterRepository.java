@@ -5,7 +5,10 @@ import com.jeondoksi.jeondoksi.domain.user.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface CharacterRepository extends JpaRepository<Character, Long> {
     List<Character> findAllByUser(User user);
+
+    Optional<Character> findByUserAndIsEquippedTrue(User user);
 }
