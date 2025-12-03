@@ -34,10 +34,10 @@ public class BossService {
     private final GuildMemberRepository guildMemberRepository;
 
     private static final Map<CharacterRarity, Integer> BASE_DAMAGE = Map.of(
-            CharacterRarity.COMMON, 10,
-            CharacterRarity.RARE, 20,
-            CharacterRarity.EPIC, 35,
-            CharacterRarity.UNIQUE, 50);
+            CharacterRarity.COMMON, 10000,
+            CharacterRarity.RARE, 15000,
+            CharacterRarity.EPIC, 22000,
+            CharacterRarity.UNIQUE, 30000);
 
     @Transactional
     public BossResponse createBoss(CreateBossRequest request) {
@@ -60,10 +60,49 @@ public class BossService {
                 .collect(Collectors.toList());
     }
 
-    public BossResponse getBossDetail(Long bossId) {
+    public BossResponse getBossDetail(Long bossId, User user) {
         Boss boss = bossRepository.findById(bossId)
                 .orElseThrow(() -> new IllegalArgumentException("Boss not found"));
-        return new BossResponse(boss);
+
+        // 1. Get User's Guild
+        Guild guild = guildMemberRepository.findByUser(user)
+                .map(GuildMember::getGuild)
+                .orElse(null);
+
+        if (guild == null) {
+            // If no guild, return standard boss info (or global HP)
+            return new BossResponse(boss);
+        }
+
+        // 2. Calculate Virtual Max HP for Guild
+        // Formula: Guild Members * 5 * Average Damage (approx 30k) = Members * 150,000
+        // Let's use a constant per member: 150,000 HP per member
+        long memberCount = guildMemberRepository.countByGuild(guild);
+        long virtualMaxHp = memberCount * 150000;
+        if (virtualMaxHp == 0)
+            virtualMaxHp = 150000; // Fallback
+
+        // 3. Calculate Guild's Total Damage
+        Long guildDamage = bossRaidAttemptRepository.sumDamageByBossAndGuild(boss, guild);
+        if (guildDamage == null)
+            guildDamage = 0L;
+
+        // 4. Calculate Virtual Current HP
+        long virtualCurrentHp = virtualMaxHp - guildDamage;
+        if (virtualCurrentHp < 0)
+            virtualCurrentHp = 0;
+
+        // 5. Return Response with Virtual Stats
+        BossResponse response = new BossResponse(boss);
+        response.setMaxHp(virtualMaxHp);
+        response.setCurrentHp(virtualCurrentHp);
+
+        // If virtual HP is 0, mark as inactive (defeated) for this guild
+        if (virtualCurrentHp <= 0) {
+            response.setActive(false);
+        }
+
+        return response;
     }
 
     @Transactional
@@ -98,7 +137,10 @@ public class BossService {
         bossRaidAttemptRepository.save(attempt);
 
         // 6. Apply Damage to Boss
-        boss.takeDamage(damage);
+        // boss.takeDamage(damage); // REMOVED: Global boss should not take damage in
+        // this virtual system.
+        // The damage is tracked via BossRaidAttempt and calculated dynamically in
+        // getBossDetail.
     }
 
     private long calculateDamage(Character character) {

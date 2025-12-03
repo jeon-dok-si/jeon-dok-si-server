@@ -3,8 +3,10 @@ package com.jeondoksi.jeondoksi.domain.boss.controller;
 import com.jeondoksi.jeondoksi.domain.boss.dto.BossResponse;
 import com.jeondoksi.jeondoksi.domain.boss.dto.CreateBossRequest;
 import com.jeondoksi.jeondoksi.domain.boss.service.BossService;
+import com.jeondoksi.jeondoksi.global.config.security.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -30,8 +32,10 @@ public class BossController {
     }
 
     @GetMapping("/{bossId}")
-    public ResponseEntity<BossResponse> getBossDetail(@PathVariable Long bossId) {
-        BossResponse response = bossService.getBossDetail(bossId);
+    public ResponseEntity<BossResponse> getBossDetail(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PathVariable Long bossId) {
+        BossResponse response = bossService.getBossDetail(bossId, userDetails.getUser());
         return ResponseEntity.ok(response);
     }
 }

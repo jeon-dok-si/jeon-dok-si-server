@@ -2,10 +2,12 @@ package com.jeondoksi.jeondoksi.domain.boss.dto;
 
 import com.jeondoksi.jeondoksi.domain.boss.entity.Boss;
 import lombok.Getter;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 
 @Getter
+@Setter
 public class BossResponse {
     private Long id;
     private String name;
