@@ -29,6 +29,7 @@ public class ReportService {
         private final BookRepository bookRepository;
         private final com.jeondoksi.jeondoksi.domain.book.repository.BookAiSampleRepository bookAiSampleRepository;
         private final com.jeondoksi.jeondoksi.domain.gamification.service.CharacterService characterService;
+        private final com.jeondoksi.jeondoksi.domain.boss.service.BossService bossService;
         private final NlpAnalyzer nlpAnalyzer;
 
         // 유사도 임계치 상수 (후하게 설정)
@@ -95,6 +96,10 @@ public class ReportService {
                 report.approve();
 
                 reportRepository.save(report);
+
+                // 보스 레이드 공격 시도
+                bossService.attackBoss(user, report);
+
                 return com.jeondoksi.jeondoksi.domain.report.dto.ReportDetailResponse.from(report);
         }
 
