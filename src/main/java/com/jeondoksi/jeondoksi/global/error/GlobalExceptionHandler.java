@@ -40,6 +40,28 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * IllegalArgumentException 처리
+     */
+    @ExceptionHandler(IllegalArgumentException.class)
+    protected ResponseEntity<ApiResponse<Void>> handleIllegalArgumentException(IllegalArgumentException e) {
+        log.error("IllegalArgumentException: {}", e.getMessage());
+        return ResponseEntity
+                .status(ErrorCode.INVALID_INPUT_VALUE.getStatus())
+                .body(ApiResponse.failure(ErrorCode.INVALID_INPUT_VALUE.getCode(), e.getMessage()));
+    }
+
+    /**
+     * IllegalStateException 처리
+     */
+    @ExceptionHandler(IllegalStateException.class)
+    protected ResponseEntity<ApiResponse<Void>> handleIllegalStateException(IllegalStateException e) {
+        log.error("IllegalStateException: {}", e.getMessage());
+        return ResponseEntity
+                .status(ErrorCode.INVALID_INPUT_VALUE.getStatus())
+                .body(ApiResponse.failure(ErrorCode.INVALID_INPUT_VALUE.getCode(), e.getMessage()));
+    }
+
+    /**
      * 나머지 모든 예외 처리
      */
     @ExceptionHandler(Exception.class)
