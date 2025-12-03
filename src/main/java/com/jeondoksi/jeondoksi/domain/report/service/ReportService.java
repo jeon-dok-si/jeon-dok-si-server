@@ -112,12 +112,12 @@ public class ReportService {
                 // 공백 제외 길이 검사
                 String contentWithoutSpaces = content.replaceAll("\\s", "");
                 if (contentWithoutSpaces.length() < MIN_CONTENT_LENGTH) {
-                        throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE);
+                        throw new BusinessException(ErrorCode.CONTENT_TOO_SHORT);
                 }
 
                 // 반복 문자 검사
                 if (content.matches(".*" + REPETITION_PATTERN + ".*")) {
-                        throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE);
+                        throw new BusinessException(ErrorCode.CONTENT_REPETITIVE);
                 }
         }
 
@@ -167,12 +167,12 @@ public class ReportService {
 
                         // 너무 유사 (표절)
                         if (bookSimilarity >= AI_SIMILARITY_THRESHOLD) {
-                                throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE);
+                                throw new BusinessException(ErrorCode.CONTENT_PLAGIARISM);
                         }
 
                         // 너무 무관 (스팸)
                         if (bookSimilarity < MIN_BOOK_SIMILARITY) {
-                                throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE);
+                                throw new BusinessException(ErrorCode.CONTENT_IRRELEVANT);
                         }
                 }
 
@@ -190,7 +190,7 @@ public class ReportService {
                 for (Report pastReport : recentReports) {
                         double similarity = nlpAnalyzer.calculateSimilarity(content, pastReport.getContent());
                         if (similarity >= AI_SIMILARITY_THRESHOLD) {
-                                throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE);
+                                throw new BusinessException(ErrorCode.CONTENT_SELF_PLAGIARISM);
                         }
                 }
         }

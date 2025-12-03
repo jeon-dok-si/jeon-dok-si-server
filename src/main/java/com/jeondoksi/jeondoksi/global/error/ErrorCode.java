@@ -28,6 +28,11 @@ public enum ErrorCode {
     // Report
     REPORT_NOT_FOUND(HttpStatus.NOT_FOUND, "R001", "독후감을 찾을 수 없습니다."),
     AI_GENERATED_CONTENT_DETECTED(HttpStatus.BAD_REQUEST, "R002", "AI가 작성한 것으로 의심되는 내용이 감지되었습니다."),
+    CONTENT_TOO_SHORT(HttpStatus.BAD_REQUEST, "R003", "내용이 너무 짧습니다. 50자 이상 작성해주세요."),
+    CONTENT_REPETITIVE(HttpStatus.BAD_REQUEST, "R004", "반복되는 문자가 너무 많습니다."),
+    CONTENT_PLAGIARISM(HttpStatus.BAD_REQUEST, "R005", "책 소개글과 너무 유사합니다. 본인의 생각을 작성해주세요."),
+    CONTENT_IRRELEVANT(HttpStatus.BAD_REQUEST, "R006", "책 내용과 관련이 없어 보입니다. 올바른 독후감을 작성해주세요."),
+    CONTENT_SELF_PLAGIARISM(HttpStatus.BAD_REQUEST, "R007", "이전에 작성한 독후감과 너무 유사합니다."),
 
     // Quiz
     QUIZ_NOT_FOUND(HttpStatus.NOT_FOUND, "Q001", "퀴즈를 찾을 수 없습니다."),

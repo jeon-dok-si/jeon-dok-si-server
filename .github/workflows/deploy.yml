@@ -69,13 +69,14 @@ jobs:
           /usr/bin/docker run -d \
             --name jeondoksi-backend \
             -p 8080:8080 \
+            --add-host=host.docker.internal:host-gateway \
             -e SPRING_PROFILES_ACTIVE=prod \
             -e JWT_SECRET="${{ secrets.JWT_SECRET }}" \
             -e JWT_EXPIRATION=86400000 \
             -e SPRING_DATASOURCE_URL="${{ secrets.DB_URL }}" \
             -e SPRING_DATASOURCE_USERNAME="${{ secrets.DB_USERNAME }}" \
             -e SPRING_DATASOURCE_PASSWORD="${{ secrets.DB_PASSWORD }}" \
-            -e SPRING_DATA_REDIS_HOST=172.17.0.1 \
+            -e SPRING_DATA_REDIS_HOST=host.docker.internal \
             -e API_ALADIN_KEY="${{ secrets.ALADIN_KEY }}" \
             -e API_NAVER_CLIENT_ID="${{ secrets.NAVER_CLIENT_ID }}" \
             -e API_NAVER_CLIENT_SECRET="${{ secrets.NAVER_CLIENT_SECRET }}" \
