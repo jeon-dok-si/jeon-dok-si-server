@@ -161,17 +161,29 @@ public class GuildService {
         if (member.getRole() == GuildRole.LEADER) {
             long count = guildMemberRepository.countByGuild(member.getGuild());
             if (count > 1) {
-                throw new IllegalStateException(
-                        "길드원은 탈퇴할 수 없습니다. 길드장을 양도하거나 모든 길드원을 추방한 후 탈퇴하세요.");
+                // 1. Find next leader (e.g., oldest member who is not the current leader)
+                List<GuildMember> members = guildMemberRepository.findByGuild(member.getGuild());
+                GuildMember nextLeader = members.stream()
+                        .filter(m -> !m.getUser().getUserId().equals(user.getUserId()))
+                        .findFirst() // Since it's sorted by ID usually, this picks the earliest joiner
+                        .orElseThrow(() -> new IllegalStateException("No candidate for leadership found"));
+
+                // 2. Promote next leader
+                nextLeader.updateRole(GuildRole.LEADER);
+                member.getGuild().changeLeader(nextLeader.getUser());
+
+                // 3. Remove old leader
+                guildMemberRepository.delete(member);
             } else {
                 // Delete guild if leader is the only member
+                bossRaidAttemptRepository.deleteByGuild(member.getGuild());
                 guildMemberRepository.delete(member);
                 guildRepository.delete(member.getGuild());
                 return;
             }
+        } else {
+            guildMemberRepository.delete(member);
         }
-
-        guildMemberRepository.delete(member);
     }
 
     @Transactional
@@ -186,10 +198,16 @@ public class GuildService {
         // Check if raid is already active (and boss is not dead)
         if (guild.getCurrentBoss() != null) {
             // Calculate current HP to see if it's dead
-            long memberCount = guildMemberRepository.countByGuild(guild);
-            long virtualMaxHp = memberCount * 150000;
-            if (virtualMaxHp == 0)
-                virtualMaxHp = 150000;
+            long virtualMaxHp;
+            if (guild.getCurrentRaidMaxHp() != null) {
+                virtualMaxHp = guild.getCurrentRaidMaxHp();
+            } else {
+                // Fallback for old data
+                long memberCount = guildMemberRepository.countByGuild(guild);
+                virtualMaxHp = memberCount * 150000;
+                if (virtualMaxHp == 0)
+                    virtualMaxHp = 150000;
+            }
 
             Long guildDamage = bossRaidAttemptRepository.sumDamageByBossAndGuild(guild.getCurrentBoss(), guild);
             if (guildDamage == null)
@@ -210,10 +228,16 @@ public class GuildService {
         com.jeondoksi.jeondoksi.domain.boss.entity.Boss nextBoss = activeBosses
                 .get((int) (Math.random() * activeBosses.size()));
 
-        // 2. Set Current Boss
-        guild.setCurrentBoss(nextBoss);
+        // 2. Calculate Fixed Max HP for this Raid
+        long memberCount = guildMemberRepository.countByGuild(guild);
+        long raidMaxHp = memberCount * 150000;
+        if (raidMaxHp == 0)
+            raidMaxHp = 150000;
 
-        // 3. Reset History (Delete old attempts for this guild and this boss)
+        // 3. Set Current Boss and Fixed HP
+        guild.setCurrentBoss(nextBoss, raidMaxHp);
+
+        // 4. Reset History (Delete old attempts for this guild and this boss)
         bossRaidAttemptRepository.deleteByGuildAndBoss(guild, nextBoss);
     }
 

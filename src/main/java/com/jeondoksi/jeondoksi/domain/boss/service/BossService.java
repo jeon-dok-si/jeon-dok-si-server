@@ -86,10 +86,16 @@ public class BossService {
         }
 
         // 2. Calculate Virtual Max HP for Guild
-        long memberCount = guildMemberRepository.countByGuild(guild);
-        long virtualMaxHp = memberCount * 150000;
-        if (virtualMaxHp == 0)
-            virtualMaxHp = 150000; // Fallback
+        long virtualMaxHp;
+        if (guild.getCurrentRaidMaxHp() != null) {
+            virtualMaxHp = guild.getCurrentRaidMaxHp();
+        } else {
+            // Fallback
+            long memberCount = guildMemberRepository.countByGuild(guild);
+            virtualMaxHp = memberCount * 150000;
+            if (virtualMaxHp == 0)
+                virtualMaxHp = 150000;
+        }
 
         // 3. Calculate Guild's Total Damage
         Long guildDamage = bossRaidAttemptRepository.sumDamageByBossAndGuild(boss, guild);

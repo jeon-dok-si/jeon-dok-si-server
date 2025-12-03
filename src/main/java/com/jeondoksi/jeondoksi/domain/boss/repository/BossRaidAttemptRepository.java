@@ -16,4 +16,6 @@ public interface BossRaidAttemptRepository extends JpaRepository<BossRaidAttempt
     Long sumDamageByBossAndGuild(@Param("boss") Boss boss, @Param("guild") Guild guild);
 
     void deleteByGuildAndBoss(Guild guild, Boss boss);
+
+    void deleteByGuild(Guild guild);
 }

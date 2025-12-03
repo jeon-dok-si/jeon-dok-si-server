@@ -47,8 +47,12 @@ public class Guild extends BaseTimeEntity {
     @JoinColumn(name = "current_boss_id")
     private com.jeondoksi.jeondoksi.domain.boss.entity.Boss currentBoss;
 
-    public void setCurrentBoss(com.jeondoksi.jeondoksi.domain.boss.entity.Boss boss) {
+    @Column(name = "current_raid_max_hp")
+    private Long currentRaidMaxHp;
+
+    public void setCurrentBoss(com.jeondoksi.jeondoksi.domain.boss.entity.Boss boss, Long maxHp) {
         this.currentBoss = boss;
+        this.currentRaidMaxHp = maxHp;
     }
 
     @Builder
@@ -67,5 +71,9 @@ public class Guild extends BaseTimeEntity {
         this.description = description;
         this.isPrivate = isPrivate;
         this.password = password;
+    }
+
+    public void changeLeader(User newLeader) {
+        this.leader = newLeader;
     }
 }
