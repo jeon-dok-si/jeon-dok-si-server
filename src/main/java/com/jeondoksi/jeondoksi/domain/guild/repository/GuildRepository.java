@@ -14,6 +14,9 @@ public interface GuildRepository extends JpaRepository<Guild, Long> {
 
     Optional<Guild> findByJoinCode(String joinCode);
 
-    @Query("SELECT g FROM Guild g WHERE g.name LIKE %:keyword%")
+    @Query("SELECT g FROM Guild g WHERE g.isPrivate = false")
+    Page<Guild> findAllByIsPrivateFalse(Pageable pageable);
+
+    @Query("SELECT g FROM Guild g WHERE g.name LIKE %:keyword% AND g.isPrivate = false")
     Page<Guild> searchByName(@Param("keyword") String keyword, Pageable pageable);
 }

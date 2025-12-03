@@ -62,8 +62,8 @@ public class GuildController {
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @PathVariable Long guildId,
             @RequestBody(required = false) JoinGuildRequest request) {
-        String password = (request != null) ? request.getPassword() : null;
-        guildService.joinGuild(userDetails.getUser(), guildId, password);
+        String joinCode = (request != null) ? request.getJoinCode() : null;
+        guildService.joinGuild(userDetails.getUser(), guildId, joinCode);
         return ResponseEntity.ok().build();
     }
 

@@ -14,7 +14,7 @@ import com.jeondoksi.jeondoksi.domain.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.crypto.password.PasswordEncoder;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,7 +31,6 @@ public class GuildService {
     private final GuildMemberRepository guildMemberRepository;
     private final BossRepository bossRepository;
     private final BossRaidAttemptRepository bossRaidAttemptRepository;
-    private final PasswordEncoder passwordEncoder;
 
     @Transactional
     public GuildResponse createGuild(User user, CreateGuildRequest request) {
@@ -46,11 +45,6 @@ public class GuildService {
         }
 
         // 3. Create Guild
-        String encodedPassword = null;
-        if (request.isPrivate() && request.getPassword() != null && !request.getPassword().isBlank()) {
-            encodedPassword = passwordEncoder.encode(request.getPassword());
-        }
-
         String joinCode = null;
         if (request.isGenerateJoinCode()) {
             joinCode = UUID.randomUUID().toString().substring(0, 8).toUpperCase();
@@ -61,7 +55,7 @@ public class GuildService {
                 .description(request.getDescription())
                 .maxMembers(request.getMaxMembers())
                 .isPrivate(request.isPrivate())
-                .password(encodedPassword)
+                .password(null) // Password removed
                 .joinCode(joinCode)
                 .leader(user)
                 .build();
@@ -98,7 +92,7 @@ public class GuildService {
     }
 
     @Transactional
-    public void joinGuild(User user, Long guildId, String password) {
+    public void joinGuild(User user, Long guildId, String joinCode) {
         // 1. Check if user is already in a guild
         if (guildMemberRepository.findByUser(user).isPresent()) {
             throw new IllegalStateException("User is already in a guild");
@@ -113,12 +107,10 @@ public class GuildService {
             throw new IllegalStateException("Guild is full");
         }
 
-        // 3. Check Password if private
+        // 3. Check Join Code if private
         if (guild.isPrivate()) {
-            if (guild.getPassword() != null && !guild.getPassword().isEmpty()) {
-                if (password == null || !passwordEncoder.matches(password, guild.getPassword())) {
-                    throw new IllegalArgumentException("Invalid password");
-                }
+            if (joinCode == null || !joinCode.equals(guild.getJoinCode())) {
+                throw new IllegalArgumentException("Invalid invite code");
             }
         }
 
