@@ -61,22 +61,31 @@ public class BossService {
     }
 
     public BossResponse getBossDetail(Long bossId, User user) {
-        Boss boss = bossRepository.findById(bossId)
-                .orElseThrow(() -> new IllegalArgumentException("Boss not found"));
-
         // 1. Get User's Guild
         Guild guild = guildMemberRepository.findByUser(user)
                 .map(GuildMember::getGuild)
                 .orElse(null);
 
+        Boss boss = bossRepository.findById(bossId)
+                .orElseThrow(() -> new IllegalArgumentException("Boss not found"));
+
         if (guild == null) {
-            // If no guild, return standard boss info (or global HP)
+            return new BossResponse(boss);
+        }
+
+        // If the requested boss is NOT the guild's current boss, just return basic info
+        // or maybe we should enforce that they can only see their current boss?
+        // For now, let's calculate virtual HP only if it matches current boss.
+        Boss currentBoss = guild.getCurrentBoss();
+        if (currentBoss == null || !currentBoss.getId().equals(bossId)) {
+            // If guild has no boss or looking at different boss, return basic info
+            // But wait, if they are looking at a "Defeated" boss history, maybe we show it?
+            // For simplicity, let's just return basic info if it's not the current active
+            // raid.
             return new BossResponse(boss);
         }
 
         // 2. Calculate Virtual Max HP for Guild
-        // Formula: Guild Members * 5 * Average Damage (approx 30k) = Members * 150,000
-        // Let's use a constant per member: 150,000 HP per member
         long memberCount = guildMemberRepository.countByGuild(guild);
         long virtualMaxHp = memberCount * 150000;
         if (virtualMaxHp == 0)
@@ -107,16 +116,19 @@ public class BossService {
 
     @Transactional
     public void attackBoss(User user, Report report) {
-        // 1. Find active boss (Pick first one for now)
-        List<Boss> activeBosses = bossRepository.findAllActive();
-        if (activeBosses.isEmpty()) {
-            return; // No active boss, nothing to attack
-        }
-        Boss boss = activeBosses.get(0);
-
-        // 2. Find User's Guild
+        // 1. Find User's Guild
         Optional<GuildMember> guildMember = guildMemberRepository.findByUser(user);
         Guild guild = guildMember.map(GuildMember::getGuild).orElse(null);
+
+        if (guild == null) {
+            return; // User not in guild, cannot attack
+        }
+
+        // 2. Find Guild's Current Boss
+        Boss boss = guild.getCurrentBoss();
+        if (boss == null) {
+            return; // No active raid for this guild
+        }
 
         // 3. Find Equipped Character
         Character character = characterRepository.findByUserAndIsEquippedTrue(user)
@@ -139,8 +151,6 @@ public class BossService {
         // 6. Apply Damage to Boss
         // boss.takeDamage(damage); // REMOVED: Global boss should not take damage in
         // this virtual system.
-        // The damage is tracked via BossRaidAttempt and calculated dynamically in
-        // getBossDetail.
     }
 
     private long calculateDamage(Character character) {

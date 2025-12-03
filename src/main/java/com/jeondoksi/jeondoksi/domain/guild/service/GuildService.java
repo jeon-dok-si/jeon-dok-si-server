@@ -1,5 +1,7 @@
 package com.jeondoksi.jeondoksi.domain.guild.service;
 
+import com.jeondoksi.jeondoksi.domain.boss.repository.BossRaidAttemptRepository;
+import com.jeondoksi.jeondoksi.domain.boss.repository.BossRepository;
 import com.jeondoksi.jeondoksi.domain.guild.dto.CreateGuildRequest;
 import com.jeondoksi.jeondoksi.domain.guild.dto.GuildMemberResponse;
 import com.jeondoksi.jeondoksi.domain.guild.dto.GuildResponse;
@@ -27,6 +29,8 @@ public class GuildService {
 
     private final GuildRepository guildRepository;
     private final GuildMemberRepository guildMemberRepository;
+    private final BossRepository bossRepository;
+    private final BossRaidAttemptRepository bossRaidAttemptRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Transactional
@@ -150,29 +154,17 @@ public class GuildService {
     }
 
     @Transactional
-    public void leaveGuild(User user, Long guildId) {
+    public void leaveGuild(User user) {
         GuildMember member = guildMemberRepository.findByUser(user)
-                .orElseThrow(() -> new IllegalArgumentException("User is not in any guild"));
-
-        if (!member.getGuild().getId().equals(guildId)) {
-            throw new IllegalArgumentException("User is not a member of this guild");
-        }
+                .orElseThrow(() -> new IllegalArgumentException("가입된 길드가 없습니다."));
 
         if (member.getRole() == GuildRole.LEADER) {
-            // Leader leaving logic:
-            // For now, if leader leaves, we can either:
-            // 1. Disband guild if no one else
-            // 2. Prevent leaving if members exist
-            // 3. Auto-assign new leader
-            // Prompt says: "Define policy... e.g. if members remain, transfer leader, else
-            // delete"
-
             long count = guildMemberRepository.countByGuild(member.getGuild());
             if (count > 1) {
                 throw new IllegalStateException(
-                        "Leader cannot leave while other members exist. Transfer leadership first.");
+                        "길드원은 탈퇴할 수 없습니다. 길드장을 양도하거나 모든 길드원을 추방한 후 탈퇴하세요.");
             } else {
-                // Delete guild
+                // Delete guild if leader is the only member
                 guildMemberRepository.delete(member);
                 guildRepository.delete(member.getGuild());
                 return;
@@ -180,6 +172,49 @@ public class GuildService {
         }
 
         guildMemberRepository.delete(member);
+    }
+
+    @Transactional
+    public void startRaid(Long guildId, User user) {
+        Guild guild = guildRepository.findById(guildId)
+                .orElseThrow(() -> new IllegalArgumentException("길드를 찾을 수 없습니다."));
+
+        // Check if user is a member of the guild
+        guildMemberRepository.findByUserAndGuild(user, guild)
+                .orElseThrow(() -> new IllegalArgumentException("길드원이 아닙니다."));
+
+        // Check if raid is already active (and boss is not dead)
+        if (guild.getCurrentBoss() != null) {
+            // Calculate current HP to see if it's dead
+            long memberCount = guildMemberRepository.countByGuild(guild);
+            long virtualMaxHp = memberCount * 150000;
+            if (virtualMaxHp == 0)
+                virtualMaxHp = 150000;
+
+            Long guildDamage = bossRaidAttemptRepository.sumDamageByBossAndGuild(guild.getCurrentBoss(), guild);
+            if (guildDamage == null)
+                guildDamage = 0L;
+
+            long virtualCurrentHp = virtualMaxHp - guildDamage;
+
+            if (virtualCurrentHp > 0) {
+                throw new IllegalStateException("현재 진행 중인 레이드가 있습니다. 보스를 처치한 후 새로운 레이드를 시작하세요.");
+            }
+        }
+
+        // 1. Pick Random Active Boss
+        List<com.jeondoksi.jeondoksi.domain.boss.entity.Boss> activeBosses = bossRepository.findAllActive();
+        if (activeBosses.isEmpty()) {
+            throw new IllegalStateException("활성화된 보스가 없습니다.");
+        }
+        com.jeondoksi.jeondoksi.domain.boss.entity.Boss nextBoss = activeBosses
+                .get((int) (Math.random() * activeBosses.size()));
+
+        // 2. Set Current Boss
+        guild.setCurrentBoss(nextBoss);
+
+        // 3. Reset History (Delete old attempts for this guild and this boss)
+        bossRaidAttemptRepository.deleteByGuildAndBoss(guild, nextBoss);
     }
 
     public GuildResponse getMyGuild(User user) {

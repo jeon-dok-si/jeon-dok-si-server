@@ -14,4 +14,6 @@ public interface BossRaidAttemptRepository extends JpaRepository<BossRaidAttempt
 
     @Query("SELECT sum(bra.damage) FROM BossRaidAttempt bra WHERE bra.boss = :boss AND bra.guild = :guild")
     Long sumDamageByBossAndGuild(@Param("boss") Boss boss, @Param("guild") Guild guild);
+
+    void deleteByGuildAndBoss(Guild guild, Boss boss);
 }

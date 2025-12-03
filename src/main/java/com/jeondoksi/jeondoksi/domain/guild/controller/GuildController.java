@@ -79,7 +79,15 @@ public class GuildController {
     public ResponseEntity<Void> leaveGuild(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @PathVariable Long guildId) {
-        guildService.leaveGuild(userDetails.getUser(), guildId);
+        guildService.leaveGuild(userDetails.getUser());
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/{guildId}/raid/start")
+    public ResponseEntity<Void> startRaid(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PathVariable Long guildId) {
+        guildService.startRaid(guildId, userDetails.getUser());
         return ResponseEntity.ok().build();
     }
 }

@@ -15,5 +15,7 @@ public interface GuildMemberRepository extends JpaRepository<GuildMember, Long> 
 
     boolean existsByGuildAndUser(Guild guild, User user);
 
+    Optional<GuildMember> findByUserAndGuild(User user, Guild guild);
+
     List<GuildMember> findByGuild(Guild guild);
 }

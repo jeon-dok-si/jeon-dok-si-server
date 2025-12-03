@@ -14,6 +14,7 @@ public class GuildResponse {
     private boolean hasPassword;
     private String leaderName;
     private String joinCode;
+    private Long currentBossId;
 
     public GuildResponse(Guild guild, long currentMemberCount) {
         this.id = guild.getId();
@@ -25,5 +26,6 @@ public class GuildResponse {
         this.hasPassword = guild.getPassword() != null && !guild.getPassword().isEmpty();
         this.leaderName = guild.getLeader().getNickname();
         this.joinCode = guild.getJoinCode();
+        this.currentBossId = guild.getCurrentBoss() != null ? guild.getCurrentBoss().getId() : null;
     }
 }

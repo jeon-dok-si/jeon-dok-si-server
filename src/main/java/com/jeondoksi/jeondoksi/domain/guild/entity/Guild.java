@@ -43,6 +43,14 @@ public class Guild extends BaseTimeEntity {
     @JoinColumn(name = "leader_id", nullable = false)
     private User leader;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "current_boss_id")
+    private com.jeondoksi.jeondoksi.domain.boss.entity.Boss currentBoss;
+
+    public void setCurrentBoss(com.jeondoksi.jeondoksi.domain.boss.entity.Boss boss) {
+        this.currentBoss = boss;
+    }
+
     @Builder
     public Guild(String name, String description, int maxMembers, boolean isPrivate, String password, String joinCode,
             User leader) {
