@@ -1,6 +1,7 @@
 package com.jeondoksi.jeondoksi.domain.guild.controller;
 
 import com.jeondoksi.jeondoksi.domain.guild.dto.CreateGuildRequest;
+import com.jeondoksi.jeondoksi.domain.guild.dto.GuildMemberResponse;
 import com.jeondoksi.jeondoksi.domain.guild.dto.GuildResponse;
 import com.jeondoksi.jeondoksi.domain.guild.dto.JoinGuildRequest;
 import com.jeondoksi.jeondoksi.domain.guild.service.GuildService;
@@ -12,6 +13,8 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/guilds")
@@ -36,9 +39,21 @@ public class GuildController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/me")
+    public ResponseEntity<GuildResponse> getMyGuild(@AuthenticationPrincipal CustomUserDetails userDetails) {
+        GuildResponse response = guildService.getMyGuild(userDetails.getUser());
+        return ResponseEntity.ok(response);
+    }
+
     @GetMapping("/{guildId}")
     public ResponseEntity<GuildResponse> getGuildDetail(@PathVariable Long guildId) {
         GuildResponse response = guildService.getGuildDetail(guildId);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{guildId}/members")
+    public ResponseEntity<List<GuildMemberResponse>> getGuildMembers(@PathVariable Long guildId) {
+        List<GuildMemberResponse> response = guildService.getGuildMembers(guildId);
         return ResponseEntity.ok(response);
     }
 

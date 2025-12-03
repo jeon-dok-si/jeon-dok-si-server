@@ -1,6 +1,7 @@
 package com.jeondoksi.jeondoksi.domain.guild.service;
 
 import com.jeondoksi.jeondoksi.domain.guild.dto.CreateGuildRequest;
+import com.jeondoksi.jeondoksi.domain.guild.dto.GuildMemberResponse;
 import com.jeondoksi.jeondoksi.domain.guild.dto.GuildResponse;
 import com.jeondoksi.jeondoksi.domain.guild.entity.Guild;
 import com.jeondoksi.jeondoksi.domain.guild.entity.GuildMember;
@@ -15,7 +16,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -177,5 +180,24 @@ public class GuildService {
         }
 
         guildMemberRepository.delete(member);
+    }
+
+    public GuildResponse getMyGuild(User user) {
+        return guildMemberRepository.findByUser(user)
+                .map(member -> {
+                    Guild guild = member.getGuild();
+                    long count = guildMemberRepository.countByGuild(guild);
+                    return new GuildResponse(guild, count);
+                })
+                .orElse(null);
+    }
+
+    public List<GuildMemberResponse> getGuildMembers(Long guildId) {
+        Guild guild = guildRepository.findById(guildId)
+                .orElseThrow(() -> new IllegalArgumentException("Guild not found"));
+
+        return guildMemberRepository.findByGuild(guild).stream()
+                .map(GuildMemberResponse::new)
+                .collect(Collectors.toList());
     }
 }
