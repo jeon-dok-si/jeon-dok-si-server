@@ -68,11 +68,11 @@ public class GuildController {
     }
 
     @PostMapping("/join-by-code")
-    public ResponseEntity<Void> joinGuildByCode(
+    public ResponseEntity<GuildResponse> joinGuildByCode(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestBody JoinGuildRequest request) {
-        guildService.joinGuildByCode(userDetails.getUser(), request.getJoinCode());
-        return ResponseEntity.ok().build();
+        GuildResponse response = guildService.joinGuildByCode(userDetails.getUser(), request.getJoinCode());
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/{guildId}/leave")

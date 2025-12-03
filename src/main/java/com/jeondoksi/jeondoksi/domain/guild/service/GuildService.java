@@ -132,7 +132,7 @@ public class GuildService {
     }
 
     @Transactional
-    public void joinGuildByCode(User user, String joinCode) {
+    public GuildResponse joinGuildByCode(User user, String joinCode) {
         if (guildMemberRepository.findByUser(user).isPresent()) {
             throw new IllegalStateException("User is already in a guild");
         }
@@ -151,6 +151,8 @@ public class GuildService {
                 .role(GuildRole.MEMBER)
                 .build();
         guildMemberRepository.save(member);
+
+        return new GuildResponse(guild, currentMembers + 1);
     }
 
     @Transactional
