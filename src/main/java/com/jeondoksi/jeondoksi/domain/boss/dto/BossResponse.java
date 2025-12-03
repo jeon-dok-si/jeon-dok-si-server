@@ -1,5 +1,6 @@
 package com.jeondoksi.jeondoksi.domain.boss.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.jeondoksi.jeondoksi.domain.boss.entity.Boss;
 import lombok.Getter;
 import lombok.Setter;
@@ -16,6 +17,7 @@ public class BossResponse {
     private long maxHp;
     private long currentHp;
     private String imageUrl;
+    @JsonProperty("isActive")
     private boolean isActive;
     private LocalDateTime startAt;
     private LocalDateTime endAt;

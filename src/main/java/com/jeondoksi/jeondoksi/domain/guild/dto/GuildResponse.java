@@ -1,5 +1,6 @@
 package com.jeondoksi.jeondoksi.domain.guild.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.jeondoksi.jeondoksi.domain.guild.entity.Guild;
 import lombok.Getter;
 
@@ -10,6 +11,7 @@ public class GuildResponse {
     private String description;
     private int maxMembers;
     private long currentMemberCount;
+    @JsonProperty("isPrivate")
     private boolean isPrivate;
     private boolean hasPassword;
     private String leaderName;
