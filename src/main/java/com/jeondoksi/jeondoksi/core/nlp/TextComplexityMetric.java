@@ -43,12 +43,15 @@ public class TextComplexityMetric {
         // 접속사: 10개 이상이면 만점. 30점 비중 (기존 20)
         // 고난이도 어휘: 10개 이상이면 만점. 40점 비중 (기존 30)
 
-        double ttrScore = ttr * 35; // Max 35 (기존 30)
-        double lengthScore = Math.min(avgLength, 80) * 0.5; // Max 40 (평균 길이 80자까지 인정)
-        double conjunctionScore = Math.min(conjunctionCount, 10) * 3; // Max 30
-        double vocabularyScore = Math.min(hardNounCount, 15) * 2.5; // Max 37.5 (기존 2, Max 30)
+        // 점수 계산 (밸런스 조정: 모든 항목 35점 만점으로 통일)
+        // 총점 140점 만점 구조 (여유분 40점)
 
-        // 총합이 100을 넘을 수 있으므로 100으로 제한 (하지만 기본 점수가 높아지도록 유도)
+        double ttrScore = ttr * 35; // Max 35
+        double lengthScore = Math.min(avgLength, 70) * 0.5; // Max 35 (평균 70자면 만점)
+        double conjunctionScore = Math.min(conjunctionCount, 10) * 3.5; // Max 35 (10개면 만점, 개당 3.5점)
+        double vocabularyScore = Math.min(hardNounCount, 14) * 2.5; // Max 35 (14개면 만점, 개당 2.5점)
+
+        // 총합이 100을 넘을 수 있으므로 100으로 제한
         double totalScore = ttrScore + lengthScore + conjunctionScore + vocabularyScore;
 
         // 보정: 논리적인 글은 기본적으로 점수가 잘 나오도록 1.1배 (User Request)

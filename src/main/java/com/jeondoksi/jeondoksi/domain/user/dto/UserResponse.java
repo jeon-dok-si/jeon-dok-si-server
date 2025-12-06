@@ -77,9 +77,9 @@ public class UserResponse {
         } else if (logic == max && emotion == max) {
             return "PHILOSOPHER"; // 논리 + 감정
         } else if (logic == max && action == max) {
-            return "ANALYST"; // 논리 + 행동
+            return "STRATEGIST"; // 논리 + 행동 (New)
         } else if (emotion == max && action == max) {
-            return "EMPATH"; // 감정 + 행동 (감성 우선)
+            return "VISIONARY"; // 감정 + 행동 (New)
         } else if (logic == max) {
             return "ANALYST"; // 논리형 -> 냉철한 분석가
         } else if (emotion == max) {

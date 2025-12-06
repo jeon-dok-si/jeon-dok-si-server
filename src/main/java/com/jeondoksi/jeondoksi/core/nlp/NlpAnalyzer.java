@@ -159,18 +159,35 @@ public class NlpAnalyzer {
     }
 
     private String determineType(int logic, int emotion, int action) {
-        // 감성형 기준 완화 (60 -> 50)
-        if (emotion >= 50 && emotion >= logic && emotion >= action)
-            return "EMPATH"; // 감성형 (우선순위 높임)
+        // 모든 성향 기준 60점으로 통일 (형평성 고려)
 
+        // 1. 감성형 (EMPATH) - 우선순위 최상
+        // 감성 점수가 60점 이상이고, 다른 점수보다 높거나 같을 때
+        if (emotion >= 60 && emotion >= logic && emotion >= action)
+            return "EMPATH";
+
+        // 2. 사색하는 철학자 (PHILOSOPHER) - 논리 + 감성
         if (logic >= 60 && emotion >= 60)
-            return "PHILOSOPHER"; // 사색형
-        if (logic >= 60)
-            return "ANALYST"; // 탐구형
-        if (action >= 60)
-            return "ACTIVIST"; // 실천형
+            return "PHILOSOPHER";
 
-        return "READER"; // 일반 독서가
+        // 3. 용의주도한 전략가 (STRATEGIST) - 논리 + 행동 (New)
+        if (logic >= 60 && action >= 60)
+            return "STRATEGIST";
+
+        // 4. 영감을 주는 모험가 (VISIONARY) - 감성 + 행동 (New)
+        if (emotion >= 60 && action >= 60)
+            return "VISIONARY";
+
+        // 5. 냉철한 분석가 (ANALYST) - 논리 단독
+        if (logic >= 60)
+            return "ANALYST";
+
+        // 6. 행동하는 실천가 (ACTIVIST) - 행동 단독
+        if (action >= 60)
+            return "ACTIVIST";
+
+        // 7. 성실한 독서가 (READER) - 기본
+        return "READER";
     }
 
     public double calculateSimilarity(String text1, String text2) {
