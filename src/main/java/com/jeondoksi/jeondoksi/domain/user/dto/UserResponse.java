@@ -73,19 +73,19 @@ public class UserResponse {
         int max = Math.max(logic, Math.max(emotion, action));
 
         if (logic == max && emotion == max && action == max) {
-            return "BALANCED"; // 균형잡힌 독자
+            return "READER"; // 균형잡힌 독자 -> 성실한 독서가
         } else if (logic == max && emotion == max) {
             return "PHILOSOPHER"; // 논리 + 감정
         } else if (logic == max && action == max) {
             return "ANALYST"; // 논리 + 행동
         } else if (emotion == max && action == max) {
-            return "ACTIVIST"; // 감정 + 행동
+            return "EMPATH"; // 감정 + 행동 (감성 우선)
         } else if (logic == max) {
-            return "THINKER"; // 논리형
+            return "ANALYST"; // 논리형 -> 냉철한 분석가
         } else if (emotion == max) {
-            return "EMPATH"; // 감정형
+            return "EMPATH"; // 감정형 -> 감성적인 공감러
         } else if (action == max) {
-            return "DOER"; // 실천형
+            return "ACTIVIST"; // 실천형 -> 행동하는 실천가
         } else {
             return "READER"; // 기본
         }
