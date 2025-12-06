@@ -33,10 +33,10 @@ public class ReportService {
         private final NlpAnalyzer nlpAnalyzer;
         private final com.jeondoksi.jeondoksi.domain.book.client.NaverBookClient naverBookClient;
 
-        // 유사도 임계치 상수 (후하게 설정)
-        private static final double AI_SIMILARITY_THRESHOLD = 0.85; // AI 샘플/자가복제 유사도 (원래 0.6 -> 0.85)
-        private static final double MIN_BOOK_SIMILARITY = 0.02; // 책 줄거리 최소 유사도 (원래 0.05 -> 0.02)
-        private static final double AI_PROBABILITY_THRESHOLD = 0.9; // AI 작성 확률 임계치 (원래 0.85 -> 0.9)
+        // 유사도 임계치 상수 (엄격하게 설정)
+        private static final double AI_SIMILARITY_THRESHOLD = 0.7; // AI 샘플/자가복제 유사도 (0.85 -> 0.75)
+        private static final double MIN_BOOK_SIMILARITY = 0.02; // 책 줄거리 최소 유사도 (유지)
+        private static final double AI_PROBABILITY_THRESHOLD = 0.7; // AI 작성 확률 임계치 (0.9 -> 0.8)
         private static final int MIN_CONTENT_LENGTH = 50; // 최소 글자 수
         private static final String REPETITION_PATTERN = "(.)\\1{9,}"; // 동일 문자 10회 이상 반복
 
