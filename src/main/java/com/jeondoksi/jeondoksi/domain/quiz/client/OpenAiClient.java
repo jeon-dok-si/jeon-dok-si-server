@@ -160,6 +160,52 @@ public class OpenAiClient {
         }
     }
 
+    public boolean checkContentRelevance(String content, String bookTitle, String bookDescription) {
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.setBearerAuth(apiKey);
+
+            JsonObject systemMessage = new JsonObject();
+            systemMessage.addProperty("role", "system");
+            systemMessage.addProperty("content",
+                    "당신은 독서 기록 검증 AI입니다. 사용자의 독후감이 해당 책의 내용과 관련이 있는지 판단하세요. " +
+                            "책 제목과 줄거리를 참고하여, 독후감이 전혀 다른 책의 내용이거나 무의미한 텍스트라면 false를, " +
+                            "관련이 있다면 true를 반환하세요. " +
+                            "반드시 JSON 포맷으로만 응답하세요: {\"isRelevant\": true}. " +
+                            "다른 설명 없이 JSON만 반환하세요.");
+
+            JsonObject userMessage = new JsonObject();
+            userMessage.addProperty("role", "user");
+            userMessage.addProperty("content",
+                    "책 제목: " + bookTitle + "\n" +
+                            "책 줄거리: " + bookDescription + "\n\n" +
+                            "사용자 독후감:\n" + content);
+
+            JsonArray messages = new JsonArray();
+            messages.add(systemMessage);
+            messages.add(userMessage);
+
+            JsonObject requestBody = new JsonObject();
+            requestBody.addProperty("model", model);
+            requestBody.add("messages", messages);
+            requestBody.addProperty("temperature", 0.1); // 정확한 판단을 위해 낮은 temperature
+
+            HttpEntity<String> request = new HttpEntity<>(gson.toJson(requestBody), headers);
+            String response = restTemplate.postForObject(OPENAI_URL, request, String.class);
+
+            String content_response = parseResponse(response);
+
+            // JSON 파싱하여 isRelevant 값 추출
+            JsonObject result = gson.fromJson(content_response, JsonObject.class);
+            return result.get("isRelevant").getAsBoolean();
+        } catch (Exception e) {
+            log.warn("Content relevance check failed, defaulting to pass (true)", e);
+            // Fallback: API 실패 시 통과 처리 (User Experience 우선)
+            return true;
+        }
+    }
+
     public String generateFeedback(String content, String bookTitle) {
         try {
             HttpHeaders headers = new HttpHeaders();

@@ -31,6 +31,7 @@ public class ReportService {
         private final com.jeondoksi.jeondoksi.domain.gamification.service.CharacterService characterService;
         private final com.jeondoksi.jeondoksi.domain.boss.service.BossService bossService;
         private final NlpAnalyzer nlpAnalyzer;
+        private final com.jeondoksi.jeondoksi.domain.book.client.NaverBookClient naverBookClient;
 
         // 유사도 임계치 상수 (후하게 설정)
         private static final double AI_SIMILARITY_THRESHOLD = 0.85; // AI 샘플/자가복제 유사도 (원래 0.6 -> 0.85)
@@ -172,6 +173,30 @@ public class ReportService {
 
                         // 너무 무관 (스팸)
                         if (bookSimilarity < MIN_BOOK_SIMILARITY) {
+                                throw new BusinessException(ErrorCode.CONTENT_IRRELEVANT);
+                        }
+                }
+
+                // 2.5 AI 내용 적합성 검사 (GPT 활용)
+                // 네이버 API를 통해 풍부한 줄거리 확보 시도
+                String referenceDescription = book.getDescription();
+                try {
+                        List<com.jeondoksi.jeondoksi.domain.book.dto.BookSearchResponse> searchResults = naverBookClient
+                                        .searchBooks(book.getTitle());
+                        if (!searchResults.isEmpty() && searchResults.get(0).getDescription() != null
+                                        && !searchResults.get(0).getDescription().isEmpty()) {
+                                referenceDescription = searchResults.get(0).getDescription();
+                        }
+                } catch (Exception e) {
+                        // 네이버 API 실패 시 DB 줄거리 사용 (로그만 남김)
+                        // log.warn("Naver Book API failed during report validation", e);
+                }
+
+                // 줄거리 정보가 있을 때만 수행 (DB든 네이버든)
+                if (referenceDescription != null && !referenceDescription.isEmpty()) {
+                        boolean isRelevant = openAiClient.checkContentRelevance(content, book.getTitle(),
+                                        referenceDescription);
+                        if (!isRelevant) {
                                 throw new BusinessException(ErrorCode.CONTENT_IRRELEVANT);
                         }
                 }
