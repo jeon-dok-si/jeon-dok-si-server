@@ -69,25 +69,34 @@ public class UserResponse {
         int emotion = user.getEmotionStat();
         int action = user.getActionStat();
 
-        // 가장 높은 스탯 찾기
-        int max = Math.max(logic, Math.max(emotion, action));
+        // NlpAnalyzer와 동일한 로직 적용 (60점 기준)
 
-        if (logic == max && emotion == max && action == max) {
-            return "READER"; // 균형잡힌 독자 -> 성실한 독서가
-        } else if (logic == max && emotion == max) {
-            return "PHILOSOPHER"; // 논리 + 감정
-        } else if (logic == max && action == max) {
-            return "STRATEGIST"; // 논리 + 행동 (New)
-        } else if (emotion == max && action == max) {
-            return "VISIONARY"; // 감정 + 행동 (New)
-        } else if (logic == max) {
-            return "ANALYST"; // 논리형 -> 냉철한 분석가
-        } else if (emotion == max) {
-            return "EMPATH"; // 감정형 -> 감성적인 공감러
-        } else if (action == max) {
-            return "ACTIVIST"; // 실천형 -> 행동하는 실천가
-        } else {
-            return "READER"; // 기본
-        }
+        // 1. 감성형 (EMPATH) - 우선순위 최상
+        // 감성 점수가 60점 이상이고, 다른 점수보다 높거나 같을 때
+        if (emotion >= 60 && emotion >= logic && emotion >= action)
+            return "EMPATH";
+
+        // 2. 사색하는 철학자 (PHILOSOPHER) - 논리 + 감성
+        if (logic >= 60 && emotion >= 60)
+            return "PHILOSOPHER";
+
+        // 3. 용의주도한 전략가 (STRATEGIST) - 논리 + 행동
+        if (logic >= 60 && action >= 60)
+            return "STRATEGIST";
+
+        // 4. 영감을 주는 모험가 (VISIONARY) - 감성 + 행동
+        if (emotion >= 60 && action >= 60)
+            return "VISIONARY";
+
+        // 5. 냉철한 분석가 (ANALYST) - 논리 단독
+        if (logic >= 60)
+            return "ANALYST";
+
+        // 6. 행동하는 실천가 (ACTIVIST) - 행동 단독
+        if (action >= 60)
+            return "ACTIVIST";
+
+        // 7. 성실한 독서가 (READER) - 기본
+        return "READER";
     }
 }
