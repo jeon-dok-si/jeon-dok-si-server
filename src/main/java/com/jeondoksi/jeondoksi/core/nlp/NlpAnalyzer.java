@@ -161,6 +161,11 @@ public class NlpAnalyzer {
     private String determineType(int logic, int emotion, int action) {
         // 모든 성향 기준 60점으로 통일 (형평성 고려)
 
+        // 0. 통달한 현자 (SAGE) - 모든 능력치 균형 고득점 (New)
+        // 논리, 감성, 행동 모두 60점 이상일 때 최우선 부여
+        if (logic >= 60 && emotion >= 60 && action >= 60)
+            return "SAGE";
+
         // 1. 감성형 (EMPATH) - 우선순위 최상
         // 감성 점수가 60점 이상이고, 다른 점수보다 높거나 같을 때
         if (emotion >= 60 && emotion >= logic && emotion >= action)

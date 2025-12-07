@@ -84,11 +84,10 @@ public class UserResponse {
         if (logic >= 60 && action >= 60)
             return "STRATEGIST";
 
-        // 4. 영감을 주는 모험가 (VISIONARY) - 감성 + 행동
-        if (emotion >= 60 && action >= 60)
-            return "VISIONARY";
-
-        // 5. 냉철한 분석가 (ANALYST) - 논리 단독
+        // 0. 통달한 현자 (SAGE) - 모든 능력치 균형 고득점
+        if (logic >= 60 && emotion >= 60 && action >= 60) {
+            return "SAGE";
+        } // 5. 냉철한 분석가 (ANALYST) - 논리 단독
         if (logic >= 60)
             return "ANALYST";
 
